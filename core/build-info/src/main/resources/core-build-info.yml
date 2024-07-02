@@ -1,0 +1,5 @@
+management:
+  info:
+    git:
+      enabled: true
+      mode: full

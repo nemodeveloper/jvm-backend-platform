@@ -1,0 +1,8 @@
+springdoc:
+  api-docs:
+    enabled: ${platform.core.open-api.enabled:true}
+  swagger-ui:
+    enabled: ${platform.core.open-api.enabled:true}
+    disable-swagger-default-url: true
+    tags-sorter: alpha
+    operations-sorter: alpha

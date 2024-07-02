@@ -1,0 +1,3 @@
+org.springframework.boot.SpringApplicationRunListener=\
+  ru.nemodev.platform.core.buildinfo.config.GitBuildInfoAppRunListener,\
+  ru.nemodev.platform.core.buildinfo.config.ApplicationInfoAppRunListener

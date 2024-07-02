@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    hikari:
+      pool-name: ${spring.application.name:backend-app}
+      maximum-pool-size: 4
+      transaction-isolation: 4 # TRANSACTION_REPEATABLE_READ
+      data-source-properties:
+        ApplicationName: ${spring.application.name:backend-app}
+  data:
+    jdbc:
+      dialect: postgresql
+  flyway:
+    enabled: true
+    locations: "classpath:flyway/migrations"
+    baseline-on-migrate: true
+    baseline-version: 0

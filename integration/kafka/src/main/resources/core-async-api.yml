@@ -1,0 +1,64 @@
+springwolf:
+  enabled: true
+  docket:
+    info:
+      title: ${spring.application.name}
+      version: 1.0.0
+      contact:
+        name: ${smftp.core.open-api.contact.name}
+        email: ${smftp.core.open-api.contact.email}
+        url: ${smftp.core.open-api.contact.url}
+    base-package: ru.smft
+    servers:
+      old-stage-kafka-bus-0:
+        protocol: kafka
+        description: OLD STAGE 0
+        host: kafka-bus.samoletgroup.ru:30010
+      old-stage-kafka-bus-1:
+        protocol: kafka
+        description: OLD STAGE 1
+        host: kafka-bus.samoletgroup.ru:30011
+      old-stage-kafka-bus-2:
+        protocol: kafka
+        description: OLD STAGE 2
+        host: kafka-bus.samoletgroup.ru:30012
+      old-prod-kafka-bus:
+        protocol: kafka
+        description: OLD PROD
+        host: kafka.samoletgroup.ru:32575
+      new-stage-kafka-bus-1:
+        protocol: kafka
+        description: NEW STAGE 1
+        host: sd-kafka-stg01-n01.sd.local:9092
+      new-stage-kafka-bus-2:
+        protocol: kafka
+        description: NEW STAGE 2
+        host: sd-kafka-stg01-n02.sd.local:9092
+      new-stage-kafka-bus-3:
+        protocol: kafka
+        description: NEW STAGE 3
+        host: sd-kafka-stg01-n03.sd.local:9092
+      new-prod-kafka-bus-1:
+        protocol: kafka
+        description: NEW PROD 1
+        host: sd-kafka-prd01-n01.sd.local:9092
+      new-prod-kafka-bus-2:
+        protocol: kafka
+        description: NEW PROD 2
+        host: sd-kafka-prd01-n02.sd.local:9092
+      new-prod-kafka-bus-3:
+        protocol: kafka
+        description: NEW PROD 3
+        host: sd-kafka-prd01-n03.sd.local:9092
+      new-prod-kafka-bus-4:
+        protocol: kafka
+        description: NEW PROD 4
+        host: sd-kafka-prd01-n04.sd.local:9092
+      new-prod-kafka-bus-5:
+        protocol: kafka
+        description: NEW PROD 5
+        host: sd-kafka-prd01-n05.sd.local:9092
+      new-prod-kafka-bus-6:
+        protocol: kafka
+        description: NEW PROD 6
+        host: sd-kafka-prd01-n06.sd.local:9092

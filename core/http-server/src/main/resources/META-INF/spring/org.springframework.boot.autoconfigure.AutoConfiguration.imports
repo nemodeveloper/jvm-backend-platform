@@ -1,0 +1,2 @@
+ru.nemodev.platform.core.http.server.config.CorsGlobalConfig
+ru.nemodev.platform.core.http.server.config.WebServerConfig

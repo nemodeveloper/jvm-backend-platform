@@ -1,0 +1,13 @@
+management:
+  tracing:
+    enabled: ${TRACING_ENABLED:false}
+    propagation:
+      type: ${TRACING_PROPAGATION_TYPE:w3c}
+      produce: ${TRACING_PROPAGATION_PRODUCE:w3c}
+      consume: ${TRACING_PROPAGATION_CONSUME:w3c}
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${TRACING_OTLP_URL:http://localhost:4317}
+      timeout: ${TRACING_OTLP_TIMEOUT:10s}

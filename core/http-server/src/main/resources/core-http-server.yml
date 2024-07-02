@@ -1,0 +1,13 @@
+spring:
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  shutdown: graceful
+  max-http-request-header-size: 64KB
+  http2:
+    enabled: true
+  error:
+    whitelabel:
+      enabled: false

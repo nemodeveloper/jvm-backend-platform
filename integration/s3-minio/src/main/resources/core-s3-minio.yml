@@ -1,0 +1,5 @@
+platform:
+  integration:
+    s3-minio:
+      http-client:
+        service-id: S3 Minio

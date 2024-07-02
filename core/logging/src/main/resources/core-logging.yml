@@ -1,0 +1,5 @@
+platform:
+  core:
+    logging:
+      console-enabled: ${PLATFORM_CORE_LOGGING_CONSOLE_ENABLED:true}
+      format: ${PLATFORM_CORE_LOGGING_FORMAT:plain}
