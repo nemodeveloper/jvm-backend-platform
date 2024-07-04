@@ -86,21 +86,21 @@ dependencyResolutionManagement {
 
             // base database
             val postgresJdbcVersion = "42.7.3"
-            val dataSourceMicrometerVersion = "1.0.3"
+            val dataSourceMicrometerVersion = "1.0.4"
             library("spring-boot-jdbc", "org.springframework.boot:spring-boot-starter-data-jdbc:$springBootVersion")
             library("datasource-micrometer", "net.ttddyy.observation:datasource-micrometer-spring-boot:$dataSourceMicrometerVersion")
             library("postgres-jdbc", "org.postgresql:postgresql:$postgresJdbcVersion")
 
-            val flywayVersion = "10.13.0"
+            val flywayVersion = "10.15.2"
             library("flyway", "org.flywaydb:flyway-core:$flywayVersion")
             library("flyway-postgresql", "org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
             // base kafka
-            val springKafkaVersion = "3.2.0"
+            val springKafkaVersion = "3.2.1"
             library("spring-kafka", "org.springframework.kafka:spring-kafka:$springKafkaVersion")
 
             // base actuator + prometheus
-            val micrometerVersion = "1.13.0"
+            val micrometerVersion = "1.13.1"
             val micrometerContextPropagationVersion = "1.1.1"
             library("spring-boot-actuator", "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
             library("micrometer", "io.micrometer:micrometer-core:$micrometerVersion")
@@ -108,21 +108,21 @@ dependencyResolutionManagement {
             library("micrometer-context-propagation", "io.micrometer:context-propagation:$micrometerContextPropagationVersion")
 
             // base tracing
-            val micrometerTracingVersion = "1.3.0"
-            val otlpExporterVersion = "1.38.0"
+            val micrometerTracingVersion = "1.3.1"
+            val otlpExporterVersion = "1.39.0"
             library("micrometer-tracing", "io.micrometer:micrometer-tracing:$micrometerTracingVersion")
             library("micrometer-tracing-bridge-otel", "io.micrometer:micrometer-tracing-bridge-otel:$micrometerTracingVersion")
             library("opentelemetry-exporter-otlp", "io.opentelemetry:opentelemetry-exporter-otlp:$otlpExporterVersion")
 
             // base open-api
-            val springdocVersion = "2.5.0"
-            val swaggerAnnotationsVersion = "2.2.21"
+            val springdocVersion = "2.6.0"
+            val swaggerAnnotationsVersion = "2.2.22"
             library("springdoc-openapi-common", "org.springdoc:springdoc-openapi-starter-common:$springdocVersion")
             library("springdoc-openapi-webmvc-ui", "org.springdoc:springdoc-openapi-starter-webmvc-ui:$springdocVersion")
             library("swagger-annotations", "io.swagger.core.v3:swagger-annotations:$swaggerAnnotationsVersion")
 
             // base async-api
-            val springwolfVersion = "1.2.0"
+            val springwolfVersion = "1.4.0"
             library("springwolf-generic-binding", "io.github.springwolf:springwolf-generic-binding:$springwolfVersion")
             library("springwolf-ui", "io.github.springwolf:springwolf-ui:$springwolfVersion")
 
@@ -154,11 +154,11 @@ dependencyResolutionManagement {
             val icu4jVersion = "75.1"
             library("icu4j", "com.ibm.icu:icu4j:$icu4jVersion")
 
-            val javaUuidGeneratorVersion = "5.0.0"
+            val javaUuidGeneratorVersion = "5.1.0"
             library("java-uuid-generator", "com.fasterxml.uuid:java-uuid-generator:$javaUuidGeneratorVersion")
 
             // s3-minio
-            val minioVersion = "8.5.10"
+            val minioVersion = "8.5.11"
             library("minio", "io.minio:minio:$minioVersion")
 
             // http
@@ -166,8 +166,8 @@ dependencyResolutionManagement {
             library("http-client", "org.apache.httpcomponents.client5:httpclient5:$apacheHttpClientVersion")
 
             // base test libs
-            val junitJupiterEngineVersion = "5.10.2"
-            val kotestVersion = "5.9.0"
+            val junitJupiterEngineVersion = "5.10.3"
+            val kotestVersion = "5.9.1"
             val mockkVersion = "1.13.11"
             library("spring-boot-test", "org.springframework.boot:spring-boot-starter-test:$springBootVersion")
             library("junit-jupiter-engine", "org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion")

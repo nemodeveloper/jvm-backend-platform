@@ -6,7 +6,10 @@ import io.swagger.v3.oas.models.Operation
 import org.springdoc.core.customizers.GlobalOpenApiCustomizer
 import java.io.FileNotFoundException
 
-class OpenApiExampleLoader(private val objectMapper: ObjectMapper) : GlobalOpenApiCustomizer {
+class OpenApiExampleCustomizer(
+    private val objectMapper: ObjectMapper
+) : GlobalOpenApiCustomizer {
+
     override fun customise(openApi: OpenAPI) {
         openApi.paths.entries.forEach { path -> createExampleTextForRequestBody(path.value.get) }
         openApi.paths.entries.forEach { path -> createExampleTextForRequestBody(path.value.put) }

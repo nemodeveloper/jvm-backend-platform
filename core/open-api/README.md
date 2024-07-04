@@ -14,17 +14,52 @@
 
 - 1.1 - application.yml - по умолчанию стартер задает следующий базовый конфиг
 ``` yaml 
-platform:
-  core:
-    open-api:
-      enabled: true # включение/отключение выставления методов /opena-api* , для prod рекомендуется отключать
-      contact: # контакт ответственного за сервис
+springdoc:
+  override-with-generic-response: false
+  api-docs:
+    enabled: ${PLATFORM_OPEN_API_ENABLED:true}
+  group-configs:
+    - group: admin
+      display-name: Admin API
+      paths-to-match:
+        - /admin/**
+    - group: oauth
+      display-name: OAuth API
+      paths-to-match:
+        - /**/oauth/**
+    - group: client
+      display-name: Client API
+      paths-to-match:
+        - /**/**
+      paths-to-exclude:
+        - /**/admin/**
+        - /**/oauth/**
+  open-api:
+    info:
+      title: Название моего API
+      description: Название моего API
+      version: v1
+      contact:
         name: Симанов А.Н
-        url: tg://nemodev
+        url: tg://simanovan
         email: nemodev@yandex.ru
-      servers:  # список серверов
-        - name: DEV-LOCAL
-          url: http://localhost:8080
+    servers:
+      - description: LOCAL
+        url: ${SERVICE_LOCAL_URL:http://localhost:8080}
+      - description: PROD
+        url: ${SERVICE_PROD_URL:http://localhost:8080}
+  swagger-ui:
+    enabled: ${PLATFORM_OPEN_API_ENABLED:true}
+    disable-swagger-default-url: true
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# В своем сервисе переопределяем название API
+springdoc:
+  open-api:
+    info:
+      title: Название моего API
+      description: Название моего API
 ```
 
 - 1.2 - Описание Controller и DTO  

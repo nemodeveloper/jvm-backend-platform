@@ -2,7 +2,7 @@
 
 Для ее использования необходимо в проект добавить зависимость
 
-    implementation("ru.nemodev.core:core-integration-http")
+    implementation("ru.nemodev.platform:core-integration-http")
 
 ## Changelogs
 
