@@ -3,11 +3,11 @@ package ru.nemodev.platform.core.integration.http.customizer
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
-import ru.nemodev.platform.core.integration.http.config.HttpClientProperties
+import ru.nemodev.platform.core.integration.http.config.RestClientProperties
 
 class RestClientDefaultHeadersCustomizer: RestClientPropertyCustomizer {
 
-    override fun customize(builder: RestClient.Builder, properties: HttpClientProperties) {
+    override fun customize(builder: RestClient.Builder, properties: RestClientProperties) {
         builder.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString())
 
         properties.headers?.forEach { header ->

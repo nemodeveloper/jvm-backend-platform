@@ -34,10 +34,9 @@ spring:
     baseline-version: 0
 
 platform:
-  core:
-    db:
-      store-json-base-package: "ru.nemodev" # базовый пакет для поиска *Entity с аннотацией StoreJson
-      throw-exception-if-id-null: true   # нужно ли бросать исключение если при вставке не был задан id и его не удалось сгенерировать
+  db:
+    store-json-base-package: "ru.nemodev" # базовый пакет для поиска *Entity с аннотацией StoreJson
+    throw-exception-if-id-null: true   # нужно ли бросать исключение если при вставке не был задан id и его не удалось сгенерировать
 ```
 
 ## 1.1 - Использование StoreJson

@@ -9,7 +9,7 @@ import ru.nemodev.platform.core.exception.error.ErrorField
  * Если сторонний сервис возвращает 4xx ошибку, то в httpStatus передается код ошибки
  */
 open class IntegrationLogicException(
-    val service: String,
+    val serviceId: String,
     errorCode: ErrorCode,
     errorFields: List<ErrorField>? = null,
     httpStatus: HttpStatusCode,
@@ -22,5 +22,5 @@ open class IntegrationLogicException(
         message = message,
         cause = cause
 ) {
-    override val message = "Сервис вызвавший ошибку: $service, ${super.message}"
+    override val message = "Сервис вызвавший ошибку: $serviceId, ${super.message}"
 }

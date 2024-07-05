@@ -1,5 +1,6 @@
 package ru.nemodev.platform.core.integration.kafka.tracing
 
+// TODO разобраться нужна ли кастомная конвенция трассировки producer/consumer
 class CustomKafkaSenderObservationConvention(
     private val bootstrapServers: String
 )

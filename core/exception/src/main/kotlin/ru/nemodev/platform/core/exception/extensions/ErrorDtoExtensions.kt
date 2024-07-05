@@ -12,7 +12,7 @@ fun ErrorDtoRs.toIntegrationLogicException(
     statusCode: HttpStatusCode,
     message: String? = null
 ) = IntegrationLogicException(
-    service = service,
+    serviceId = service,
     errorCode = ErrorCode.create(
         code = this.status.code,
         description = this.status.description
@@ -33,7 +33,7 @@ fun ErrorDtoRs.toIntegrationCriticalException(
     statusCode: HttpStatusCode,
     message: String? = null
 ) = IntegrationCriticalException(
-    service = service,
+    serviceId = service,
     errorCode = ErrorCode.create(
         code = this.status.code,
         description = this.status.description

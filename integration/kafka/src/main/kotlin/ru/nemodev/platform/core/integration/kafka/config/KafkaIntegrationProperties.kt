@@ -50,6 +50,7 @@ data class KafkaIntegrationProperties(
         @NestedConfigurationProperty
         val kafka: KafkaProperties.Consumer?
     ) {
+        // TODO разобраться с настройками кафка как и куда сетить правильно
         data class KafkaConsumerExtended(
             @DefaultValue("50")
             val autoCommitBatchSize: Int,

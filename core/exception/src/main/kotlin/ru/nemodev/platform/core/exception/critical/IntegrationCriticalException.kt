@@ -10,7 +10,7 @@ import ru.nemodev.platform.core.exception.error.ErrorField
  * Если сторонний сервис не доступен считаем это 503 HTTP ошибкой
  */
 open class IntegrationCriticalException(
-    val service: String,
+    val serviceId: String,
     errorCode: ErrorCode,
     errorFields: List<ErrorField>? = null,
     message: String? = null,
@@ -23,5 +23,5 @@ open class IntegrationCriticalException(
         message = message,
         cause = cause
 ) {
-    override val message = "Сервис вызвавший ошибку: $service, ${super.message}"
+    override val message = "Сервис вызвавший ошибку: $serviceId, ${super.message}"
 }

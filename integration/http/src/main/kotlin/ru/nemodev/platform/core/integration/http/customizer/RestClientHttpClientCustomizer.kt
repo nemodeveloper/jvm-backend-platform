@@ -19,7 +19,7 @@ import org.apache.hc.core5.util.Timeout
 import org.springframework.http.HttpMethod
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory
 import org.springframework.web.client.RestClient
-import ru.nemodev.platform.core.integration.http.config.HttpClientProperties
+import ru.nemodev.platform.core.integration.http.config.RestClientProperties
 import java.io.InterruptedIOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
@@ -47,7 +47,7 @@ class RestClientHttpClientCustomizer : RestClientPropertyCustomizer {
         private val idleConnectionTimeout = TimeValue.ofMinutes(3)
     }
 
-    override fun customize(builder: RestClient.Builder, properties: HttpClientProperties) {
+    override fun customize(builder: RestClient.Builder, properties: RestClientProperties) {
         val httpClientBuilder = HttpClientBuilder.create()
 
         properties.proxy?.let { proxy ->
@@ -105,7 +105,7 @@ class RestClientHttpClientCustomizer : RestClientPropertyCustomizer {
                                     properties.retry.maxAttempts,
                                     TimeValue.of(properties.retry.delay),
                                     retryExceptions,
-                                    properties.retry.statusCodes.map { it.toInt() }
+                                    properties.retry.statusCodes
                                 ) {
                                     override fun handleAsIdempotent(request: HttpRequest): Boolean {
                                         return if (properties.retry.methods.isEmpty()) {
@@ -123,7 +123,7 @@ class RestClientHttpClientCustomizer : RestClientPropertyCustomizer {
         )
     }
 
-    private fun buildSSLContext(sslProperties: HttpClientProperties.SSL): SSLContext {
+    private fun buildSSLContext(sslProperties: RestClientProperties.SSL): SSLContext {
         return SSLContextBuilder()
             .loadKeyMaterial(
                 sslProperties.keystoreLocation!!.file,

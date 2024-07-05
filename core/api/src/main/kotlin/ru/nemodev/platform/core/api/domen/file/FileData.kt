@@ -1,16 +1,15 @@
 package ru.nemodev.platform.core.api.domen.file
 
-import org.springframework.core.io.buffer.DataBuffer
 import org.springframework.http.*
 import java.net.URLEncoder
 
-data class FileData(
+class FileData(
     val name: String,
     val extension: String,
     val mediaType: MediaType,
-    val file: DataBuffer
+    val file: ByteArray
 ) {
-    fun toResponseEntity(statusCode: HttpStatusCode = HttpStatus.OK): ResponseEntity<DataBuffer> {
+    fun toResponseEntity(statusCode: HttpStatusCode = HttpStatus.OK): ResponseEntity<ByteArray> {
         return ResponseEntity.status(statusCode)
             .header(
                 HttpHeaders.CONTENT_DISPOSITION,

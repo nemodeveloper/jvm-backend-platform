@@ -6,7 +6,7 @@ import org.springframework.boot.actuate.metrics.web.client.ObservationRestClient
 import org.springframework.http.client.observation.ClientRequestObservationContext
 import org.springframework.http.client.observation.DefaultClientRequestObservationConvention
 import org.springframework.web.client.RestClient
-import ru.nemodev.platform.core.integration.http.config.HttpClientProperties
+import ru.nemodev.platform.core.integration.http.config.RestClientProperties
 
 class RestClientObservationCustomizer(
     observationRegistry: ObservationRegistry
@@ -17,7 +17,7 @@ class RestClientObservationCustomizer(
         DefaultClientRequestObservationConvention()
     )
 
-    override fun customize(builder: RestClient.Builder, properties: HttpClientProperties) {
+    override fun customize(builder: RestClient.Builder, properties: RestClientProperties) {
         if (properties.observationEnabled) {
             observationRestClientCustomizer.customize(builder)
             builder.observationConvention(

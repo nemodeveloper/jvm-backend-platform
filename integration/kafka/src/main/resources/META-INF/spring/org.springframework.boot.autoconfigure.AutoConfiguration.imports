@@ -1,3 +1,2 @@
-ru.smft.platform.core.integration.kafka.config.KafkaFactoryConfig
-ru.smft.platform.core.integration.kafka.config.KafkaMetricConfig
-ru.smft.platform.core.integration.kafka.config.AsyncApiConfig
+ru.nemodev.platform.core.integration.kafka.config.KafkaFactoryConfig
+ru.nemodev.platform.core.integration.kafka.config.AsyncApiConfig

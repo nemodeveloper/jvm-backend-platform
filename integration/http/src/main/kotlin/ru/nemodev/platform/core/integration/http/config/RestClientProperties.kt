@@ -6,7 +6,7 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpMethod
 import java.time.Duration
 
-data class HttpClientProperties(
+data class RestClientProperties(
     val serviceId: String,
     val url: String,
     @DefaultValue
@@ -64,7 +64,7 @@ data class HttpClientProperties(
         val maxAttempts: Int,
         @DefaultValue
         val methods: Set<HttpMethod>,
-        @DefaultValue("429,500,503")
-        val statusCodes: Set<String>
+        @DefaultValue("429, 500, 503")
+        val statusCodes: Set<Int>
     )
 }
