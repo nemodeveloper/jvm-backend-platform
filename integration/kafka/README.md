@@ -3,45 +3,40 @@
 - 2 Как правильно отправлять/получать сообщения через kafka
 - 3 Bean Conditions для включения отключения producer/consumer
 - 4 Метрики consumer
-- 5 Фильтрация kafka consumer сообщений
 - 6 Создание описаний в формате AsyncApi
 
 ## Подключение библиотеки gradle
     
-    implementation("ru.smftp.core:core-integration-kafka")
+    implementation("ru.nemodev.platform:core-integration-kafka")
 
 ## Changelogs
-- 1.0.7 Обновлены версии библиотек spring-boot -> 3.2.0
-- 1.2.10 Доработан механизм коммита сообщений
-- 1.2.13 Добавлены зависимости springwolf для генерации описаний AsyncApi
-- 1.2.14 Рефакторинг WebClientProperties и KafkaIntegrationProperties, частично починена подсветка в application.yml
 
 ## Конфигурация spring
 ``` kotlin
-@ConfigurationProperties(prefix = "smft.integration")
-data class SmftIntegrationKafkaProperties(
+@ConfigurationProperties(prefix = "foo.integration")
+data class FooIntegrationKafkaProperties(
     val kafka: KafkaIntegrationProperties
 )
 
 @AutoConfiguration
-@EnableConfigurationProperties(SmftIntegrationKafkaProperties::class)
+@EnableConfigurationProperties(FooIntegrationKafkaProperties::class)
 class KafkaTestConfig {
     
     /**
-    * После того как Consumer будет создан, после события ApplicationReady начнется обработка сообщений
+    * После события ApplicationReady начнется обработка сообщений
     */
     @Bean
     fun testSmartKafkaConsumer(
         smartKafkaConsumerFactory: SmartKafkaConsumerFactory, 
-        smftKafkaProperties: SmftKafkaProperties,
+        fooIntegrationKafkaProperties: FooIntegrationKafkaProperties,
         testKafkaMessageProcessor: KafkaMessageProcessor<Foo>
-    ): SmartKafkaConsumer<Foo> = smartKafkaConsumerFactory.create("consumer-key", smftKafkaProperties.kafka, testKafkaMessageProcessor, Foo::class.java)
+    ): SmartKafkaConsumer<Foo> = smartKafkaConsumerFactory.create("consumer-key", fooIntegrationKafkaProperties.kafka, testKafkaMessageProcessor, Foo::class.java)
     
     @Bean
     fun testSmartKafkaProducer(
         smartKafkaProducerFactory: SmartKafkaProducerFactory,
-        smftKafkaProperties: SmftKafkaProperties
-    ): SmartKafkaProducer<Foo> = smartKafkaProducerFactory.create("producer-key", smftKafkaProperties.kafka)
+        fooIntegrationKafkaProperties: FooIntegrationKafkaProperties
+    ): SmartKafkaProducer<Foo> = smartKafkaProducerFactory.create("producer-key", fooIntegrationKafkaProperties.kafka)
 }
 
 @Component
@@ -49,7 +44,7 @@ class TestKafkaMessageProcessor : KafkaMessageProcessor<Foo> {
 
     companion object : Loggable
 
-    override suspend fun process(message: ReceiverRecord<String, DeserializeResult<Foo>>) {
+    override fun process(message: ConsumerRecord<String, DeserializeResult<Foo>>) {
         when(val fooValue = message.value()) {
             is DeserializeResult.Success -> {
                 val foo = fooValue.data
@@ -63,7 +58,7 @@ class TestKafkaMessageProcessor : KafkaMessageProcessor<Foo> {
 }
 ```
 
-## Отправка сообщений, полезная статья https://projectreactor.io/docs/kafka/release/reference/#api-guide-receiver
+## Отправка сообщений
 ``` kotlin
 testSmartKafkaProducer.send("message-key", message)
 ```
@@ -71,15 +66,7 @@ testSmartKafkaProducer.send("message-key", message)
 ## Конфигурация application.yml
 
 ``` yaml
-smftp:
-  core:
-    integration:  # по умолчанию установлены настройки ниже в большинстве случаев явно указывать их и менять не нужно
-      kafka:
-        metrics:
-          consumer:
-            enabled: true # включение или отключение метрик у всех consumer
-            initial-refresh-delay: 180s # первоначальная задержка обновления kafka consumer metrics, не рекомендуется уменьшать это значение т.к может привести к ошибкам
-            refresh-delay: 30s # период обновления kafka consumer metrics, не рекомендуется уменьшать данное значение чтобы не спамить kafka broker запросами
+foo:
   integration: // пример настройки kafka
     kafka: # Настройки KafkaIntegrationProperties
       producers:
@@ -100,12 +87,10 @@ smftp:
           logging-pretty-enabled: true # pretty json при логировании
           metrics-enabled: true     # Метрики
           tracing-enabled: true     # Трассировка
-          fill-mdc-from-headers: true # Нужно ли заполнять mdc контекст значениями из заголовков
           kafka-extended: # расширенные настройки kafka consumer которые нельзя задать через KafkaProperties.Consumer
             auto-commit-batch-size: 10 # размер пачки автокомита обработанных сообщений
             max-poll-timeout: 10000ms # timeout получения записей при чтении из kafka
           kafka: # опциональная настройка для переопделения общих настроек из broker.consumer, необходимо когда у вас несколько consumer в сервисе, формат такой же KafkaProperties.Consumer
-          retry-process-delay: 3000ms # задержка повторной обработки сообщения при возникновении ошибки
       broker: # Список самых важных базовых настроек Kafka на основе Spring KafkaProperties
         bootstrap-servers: localhost:9092
         producer:
@@ -149,7 +134,7 @@ smftp:
 logging:
   level:
     root: info # базовый уровень логирования МСа
-    ru.smft.platform.core.integration.kafka.logging: trace # включение логирования KAFKA запросов, если указать другой уровень логи пропадут у всех consumer/producer
+    ru.nemodev.platform.core.integration.kafka.logging: trace # включение логирования KAFKA запросов, если указать другой уровень логи пропадут у всех consumer/producer
 ```
 
 ## Bean Conditions
@@ -161,19 +146,9 @@ logging:
 
 ``` kotlin
     @Bean
-    @ConditionalOnKafkaConsumerConfigured(kafkaPrefix = "smft.integration.kafka", consumerKey = "consumer-test")
+    @ConditionalOnKafkaConsumerConfigured(kafkaPrefix = "foo.integration.kafka", consumerKey = "consumer-test")
     fun testSmartConsumer() = ....
 ```
-
-## Метрики
-При включении настройки smft.core.integration.kafka.metrics.consumer.enabled = true в actuator/prometheus появятся метрики:
-### Consumer
-- kafka_consumer_lag
-- kafka_consumer_current_offset
-- kafka_consumer_end_offset
-
-## Фильтрация kafka consumer сообщений KafkaMessageFilter FilteredKafkaMessageProcessor
-Если у вас есть необходимость фильтровать получаемые сообщения используйте FilteredKafkaMessageProcessor + KafkaMessageFilter
 
 ## Описание AsyncApi
 Библиотека позволяет создавать описания в формате AsyncApi при помощи аннотаций Springwolf и Swagger.
@@ -198,7 +173,7 @@ class WetClinicKafkaMessageProducer {
             payloadType = Message::class
         )
     )
-    override suspend fun publish(@Payload message: Message) {
+    override fun publish(@Payload message: Message) {
     }
 }
 ```
@@ -219,10 +194,10 @@ class WetClinicKafkaMessageProcessor : KafkaMessageProcessor<PetRegistrationDtoR
         operation = AsyncOperation(
             channelName = "wet-clinic.pets.registrations.v1",
             description = "Обработка полученного сообщения регистрации питомца",
-            payloadType = PetRegistrationDtoRq::class
+            payloadType = PetRegistrationEventDto::class
         )
     )
-    override suspend fun process(@Payload message: ReceiverRecord<String, DeserializeResult<PetRegistrationDtoRq>>) {
+    override fun process(@Payload message: ReceiverRecord<String, DeserializeResult<PetRegistrationDtoRq>>) {
     }
 }
 ```
@@ -236,18 +211,13 @@ springwolf:
       title: ${spring.application.name}
       version: 1.0.0
       contact:
-        name: ${smftp.core.open-api.contact.name}
-        email: ${smftp.core.open-api.contact.email}
-        url: ${smftp.core.open-api.contact.url}
-    base-package: ru.smft
+        name: ${springdoc.open-api.info.contact.name}
+        email: ${springdoc.open-api.info.contact.email}
+        url: ${springdoc.open-api.info.contact.url}
+    base-package: ru.nemodev
     servers:
-      stage-kafka-bus-0:
+      local:
         protocol: kafka
-        host: kafka-bus.samoletgroup.ru:30010
-      stage-kafka-bus-1:
-        protocol: kafka
-        host: kafka-bus.samoletgroup.ru:30011
-      stage-kafka-bus-2:
-        protocol: kafka
-        host: kafka-bus.samoletgroup.ru:30012
+        description: local
+        host: localhost:9092
 ```
