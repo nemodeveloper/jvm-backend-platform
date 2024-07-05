@@ -2,22 +2,8 @@ springdoc:
   override-with-generic-response: false
   api-docs:
     enabled: ${PLATFORM_OPEN_API_ENABLED:true}
-  group-configs:
-    - group: admin
-      display-name: Admin API
-      paths-to-match:
-        - /admin/**
-    - group: oauth
-      display-name: OAuth API
-      paths-to-match:
-        - /**/oauth/**
-    - group: client
-      display-name: Client API
-      paths-to-match:
-        - /**/**
-      paths-to-exclude:
-        - /**/admin/**
-        - /**/oauth/**
+  paths-to-exclude:
+    - "/**/springwolf/**"
   open-api:
     info:
       title: Название моего API

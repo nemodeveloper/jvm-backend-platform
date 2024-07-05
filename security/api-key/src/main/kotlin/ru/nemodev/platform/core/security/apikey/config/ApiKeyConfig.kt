@@ -39,6 +39,7 @@ class ApiKeyConfig(
                 response.status = HttpStatus.UNAUTHORIZED.series().value()
                 return@Filter
             }
+            chain.doFilter(request, response)
         } else {
             chain.doFilter(request, response)
         }
