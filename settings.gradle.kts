@@ -77,9 +77,13 @@ dependencyResolutionManagement {
             library("spring-boot-validation", "org.springframework.boot:spring-boot-starter-validation:$springBootVersion")
 
             // base spring http server
+            val jakartaServletApiVersion = "6.1.0"
             library("spring-web", "org.springframework:spring-web:$springVersion")
             library("spring-webmvc", "org.springframework:spring-webmvc:$springVersion")
+            // TODO перейти на undertow когда будет поддержка virtual threads с 3.3.2
+            //  убрать везде зависимость api(libs.spring.boot.web) кроме core-http-server
             library("spring-boot-web", "org.springframework.boot:spring-boot-starter-web:$springBootVersion")
+            library("jakarta-servlet-api", "jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
 
             // base spring security
             library("spring-boot-starter-oauth2-resource-server", "org.springframework.boot:spring-boot-starter-oauth2-resource-server:$springBootVersion")

@@ -5,32 +5,32 @@ import org.apache.kafka.common.header.internals.RecordHeaders
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.SendResult
 
-interface SmartKafkaProducer<T: Any> {
+interface PlatformKafkaProducer<T: Any> {
 
     fun getTopic(): String
 
-    fun getProducer(): KafkaTemplate<String, T>
+    fun getKafkaTemplate(): KafkaTemplate<String, T>
 
     fun send(key: String, value: T, headers: RecordHeaders? = null): SendResult<String, T>
 
     fun send(value: T): SendResult<String, T>
 }
 
-class SmartKafkaProducerImpl<T: Any>(
+class PlatformKafkaProducerImpl<T: Any>(
     private val topic: String,
-    private val producer: KafkaTemplate<String, T>
-) : SmartKafkaProducer<T> {
+    private val kafkaTemplate: KafkaTemplate<String, T>
+) : PlatformKafkaProducer<T> {
 
     override fun getTopic() = topic
 
-    override fun getProducer() = producer
+    override fun getKafkaTemplate() = kafkaTemplate
 
     override fun send(key: String, value: T, headers: RecordHeaders?): SendResult<String, T> {
         if (headers == null) {
-            return producer.send(topic, key, value).get()
+            return kafkaTemplate.send(topic, key, value).get()
         }
 
-        return producer.send(
+        return kafkaTemplate.send(
             ProducerRecord(
                 topic,
                 null,
@@ -43,5 +43,5 @@ class SmartKafkaProducerImpl<T: Any>(
     }
 
     override fun send(value: T): SendResult<String, T> =
-        producer.send(topic, value).get()
+        kafkaTemplate.send(topic, value).get()
 }

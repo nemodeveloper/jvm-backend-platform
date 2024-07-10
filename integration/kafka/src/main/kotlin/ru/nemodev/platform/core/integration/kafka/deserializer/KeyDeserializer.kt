@@ -8,11 +8,11 @@ class KeyDeserializer<T>(
 ) : Deserializer<T> by delegate {
 
     companion object {
-        const val KAFKA_KEY_INTERNAL_HEADER = "X-KafkaMessageInternal-Key"
+        const val KAFKA_MESSAGE_KEY_INTERNAL_HEADER = "X-KafkaMessageInternal-Key"
     }
 
     override fun deserialize(topic: String, headers: Headers?, data: ByteArray?): T? {
-        if (data != null) headers?.add(KAFKA_KEY_INTERNAL_HEADER, data)
+        if (data != null) headers?.add(KAFKA_MESSAGE_KEY_INTERNAL_HEADER, data)
         return super.deserialize(topic, headers, data)
     }
 }

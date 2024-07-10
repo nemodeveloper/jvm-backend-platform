@@ -16,7 +16,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.PropertySource
-import org.springframework.http.server.reactive.observation.ServerRequestObservationContext
+import org.springframework.http.server.observation.ServerRequestObservationContext
 import ru.nemodev.platform.core.buildinfo.service.BuildInfoService
 import ru.nemodev.platform.core.environment.service.EnvironmentService
 import ru.nemodev.platform.core.service.generator.IdGeneratorService
@@ -77,7 +77,7 @@ class TracingConfig {
     fun excludeBaseApiObservationPredicate(): ObservationPredicate {
         return ObservationPredicate { _, context ->
             if (context is ServerRequestObservationContext) {
-                val apiPath = context.carrier.uri.path
+                val apiPath = context.carrier.requestURI
                 !baseApiObservationPaths.any { apiPath.contains(it) }
             } else {
                 true

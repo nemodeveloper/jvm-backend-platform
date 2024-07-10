@@ -39,7 +39,7 @@ class MinioS3ClientObservation(
             .createNotStarted(
                 MinioObservationConvention.instance,
                 MinioContext(
-                    name = "s3 file upload",
+                    name = "file upload",
                     remoteServiceAddress = properties.httpClient.url,
                     bucket = bucket ?: properties.bucket
                 )
@@ -74,7 +74,7 @@ class MinioS3ClientObservation(
             .createNotStarted(
                 MinioObservationConvention.instance,
                 MinioContext(
-                    name = "s3 file generate link",
+                    name = "file generate link",
                     remoteServiceAddress = properties.httpClient.url,
                     bucket = bucket ?: properties.bucket
                 )
@@ -91,7 +91,7 @@ class MinioS3ClientObservation(
             .createNotStarted(
                 MinioObservationConvention.instance,
                 MinioContext(
-                    name = "s3 file download",
+                    name = "file download",
                     remoteServiceAddress = properties.httpClient.url,
                     bucket = bucket ?: properties.bucket
                 )
@@ -107,7 +107,7 @@ class MinioS3ClientObservation(
             .createNotStarted(
                 MinioObservationConvention.instance,
                 MinioContext(
-                    name = "s3 file params",
+                    name = "file params",
                     remoteServiceAddress = properties.httpClient.url,
                     bucket = bucket ?: properties.bucket
                 )
@@ -123,7 +123,7 @@ class MinioS3ClientObservation(
             .createNotStarted(
                 MinioObservationConvention.instance,
                 MinioContext(
-                    name = "s3 file remove",
+                    name = "file remove",
                     remoteServiceAddress = properties.httpClient.url,
                     bucket = bucket ?: properties.bucket
                 )

@@ -13,7 +13,7 @@ class LoggingSerializer<T>(
 ) : Serializer<T> by delegate {
 
     companion object : Loggable {
-        private const val KAFKA_KEY_INTERNAL_HEADER = "X-KafkaMessageInternal-Key"
+        private const val KAFKA_MESSAGE_KEY_INTERNAL_HEADER = "X-KafkaMessageInternal-Key"
     }
 
     override fun serialize(topic: String, headers: Headers?, data: T?): ByteArray? {
@@ -21,17 +21,17 @@ class LoggingSerializer<T>(
             try {
                 if (kafkaMessageLogger.enabled()) {
                     when {
-                        isKey -> if (it != null) headers?.add(KAFKA_KEY_INTERNAL_HEADER, it)
+                        isKey -> if (it != null) headers?.add(KAFKA_MESSAGE_KEY_INTERNAL_HEADER, it)
                         else -> {
-                            val restoredKey = headers?.lastHeader(KAFKA_KEY_INTERNAL_HEADER)?.value()?.toString(Charsets.UTF_8).orEmpty()
-                            headers?.remove(KAFKA_KEY_INTERNAL_HEADER)
+                            val restoredKey = headers?.lastHeader(KAFKA_MESSAGE_KEY_INTERNAL_HEADER)?.value()?.toString(Charsets.UTF_8).orEmpty()
+                            headers?.remove(KAFKA_MESSAGE_KEY_INTERNAL_HEADER)
                             kafkaMessageLogger.logMessage(
                                 loggingPrettyEnabled = loggingPrettyEnabled,
-                                direction = "producer", // TODO сделать енум
+                                direction = KafkaMessageLogger.Direction.PRODUCER,
                                 topic = topic,
                                 headers = headers
                                     ?.associate { h -> h.key() to h.value().toString(Charsets.UTF_8) }
-                                    ?.filter { header -> header.key != KAFKA_KEY_INTERNAL_HEADER }
+                                    ?.filter { header -> header.key != KAFKA_MESSAGE_KEY_INTERNAL_HEADER }
                                     .orEmpty(),
                                 key = restoredKey,
                                 message = it?.toString(Charsets.UTF_8).orEmpty()

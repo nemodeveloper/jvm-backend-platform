@@ -18,16 +18,19 @@ java.sourceCompatibility = JavaVersion.VERSION_21
 dependencies {
     // tracing
     api(libs.bundles.base.tracing)
+    api(libs.jakarta.servlet.api)
+
+    // core
     api(libs.core.api)
     api(libs.core.environment)
     api(libs.core.build.info)
     api(libs.core.service)
+    api(libs.core.spring)
 
     // spring
-    api(libs.spring.boot.starter)
-    api(libs.core.spring)
-    api(libs.spring.boot.actuator)
     api(libs.spring.web)
+    api(libs.spring.boot.starter)
+    api(libs.spring.boot.actuator)
     kapt(libs.spring.boot.configuration.processor)
 
     // kotlin

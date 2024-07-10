@@ -1,46 +1,31 @@
 package ru.nemodev.platform.core.integration.kafka.config
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import io.micrometer.core.instrument.MeterRegistry
 import org.springframework.boot.autoconfigure.AutoConfiguration
-import org.springframework.boot.context.event.ApplicationReadyEvent
-import org.springframework.context.ApplicationListener
 import org.springframework.context.annotation.Bean
-import ru.nemodev.platform.core.integration.kafka.consumer.SmartKafkaConsumer
-import ru.nemodev.platform.core.integration.kafka.factory.KafkaFactory
-import ru.nemodev.platform.core.integration.kafka.factory.KafkaFactoryImpl
-import ru.nemodev.platform.core.integration.kafka.factory.SmartKafkaFactory
-import ru.nemodev.platform.core.integration.kafka.factory.SmartKafkaFactoryImpl
+import org.springframework.context.annotation.PropertySource
+import ru.nemodev.platform.core.integration.kafka.factory.PlatformKafkaFactory
+import ru.nemodev.platform.core.integration.kafka.factory.PlatformKafkaFactoryImpl
 import ru.nemodev.platform.core.integration.kafka.logging.KafkaMessageLogger
 import ru.nemodev.platform.core.integration.kafka.logging.KafkaMessageLoggerImpl
+import ru.nemodev.platform.core.spring.config.YamlPropertySourceFactory
 
 @AutoConfiguration
+@PropertySource(value = ["classpath:core-kafka.yml"], factory = YamlPropertySourceFactory::class)
 class KafkaFactoryConfig {
 
     @Bean
-    fun kafkaFactory(
+    fun kafkaMessageLogger(objectMapper: ObjectMapper): KafkaMessageLogger =
+        KafkaMessageLoggerImpl(objectMapper)
+
+    @Bean
+    fun platformKafkaFactory(
         objectMapper: ObjectMapper,
-        kafkaMessageLogger: KafkaMessageLogger
-    ): KafkaFactory = KafkaFactoryImpl(
+        kafkaMessageLogger: KafkaMessageLogger,
+        meterRegistry: MeterRegistry,
+    ): PlatformKafkaFactory = PlatformKafkaFactoryImpl(
         objectMapper,
         kafkaMessageLogger
     )
-
-    @Bean
-    fun smartKafkaFactory(
-        kafkaFactory: KafkaFactory,
-    ): SmartKafkaFactory = SmartKafkaFactoryImpl(kafkaFactory)
-
-    @Bean
-    fun kafkaMessageLogger(objectMapper: ObjectMapper): KafkaMessageLogger = KafkaMessageLoggerImpl(objectMapper)
-
-    @Bean
-    fun onStartUpSmartKafkaListener(
-        smartKafkaListeners: List<SmartKafkaConsumer<out Any>>
-    ): ApplicationListener<ApplicationReadyEvent> {
-        return ApplicationListener<ApplicationReadyEvent> {
-            smartKafkaListeners.forEach {
-                it.startConsumeMessages()
-            }
-        }
-    }
 }

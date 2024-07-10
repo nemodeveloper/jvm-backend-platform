@@ -1,9 +1,9 @@
 # Библиотека предоставляет возможности
-- 1 Создание подключений к Kafka для отправки/получения/логирования сообщений в едином стиле
-- 2 Как правильно отправлять/получать сообщения через kafka
-- 3 Bean Conditions для включения отключения producer/consumer
-- 4 Метрики consumer
-- 6 Создание описаний в формате AsyncApi
+- 1 Создание подключений к Kafka для отправки/получения сообщений
+- 2 Bean Conditions для включения отключения producer/consumer
+- 3 Метрики producer/consumer
+- 4 Логирование сообщений producer/consumer
+- 5 Создание описаний в формате AsyncApi
 
 ## Подключение библиотеки gradle
     
@@ -11,62 +11,17 @@
 
 ## Changelogs
 
-## Конфигурация spring
-``` kotlin
-@ConfigurationProperties(prefix = "foo.integration")
-data class FooIntegrationKafkaProperties(
-    val kafka: KafkaIntegrationProperties
-)
-
-@AutoConfiguration
-@EnableConfigurationProperties(FooIntegrationKafkaProperties::class)
-class KafkaTestConfig {
-    
-    /**
-    * После события ApplicationReady начнется обработка сообщений
-    */
-    @Bean
-    fun testSmartKafkaConsumer(
-        smartKafkaConsumerFactory: SmartKafkaConsumerFactory, 
-        fooIntegrationKafkaProperties: FooIntegrationKafkaProperties,
-        testKafkaMessageProcessor: KafkaMessageProcessor<Foo>
-    ): SmartKafkaConsumer<Foo> = smartKafkaConsumerFactory.create("consumer-key", fooIntegrationKafkaProperties.kafka, testKafkaMessageProcessor, Foo::class.java)
-    
-    @Bean
-    fun testSmartKafkaProducer(
-        smartKafkaProducerFactory: SmartKafkaProducerFactory,
-        fooIntegrationKafkaProperties: FooIntegrationKafkaProperties
-    ): SmartKafkaProducer<Foo> = smartKafkaProducerFactory.create("producer-key", fooIntegrationKafkaProperties.kafka)
-}
-
-@Component
-class TestKafkaMessageProcessor : KafkaMessageProcessor<Foo> {
-
-    companion object : Loggable
-
-    override fun process(message: ConsumerRecord<String, DeserializeResult<Foo>>) {
-        when(val fooValue = message.value()) {
-            is DeserializeResult.Success -> {
-                val foo = fooValue.data
-                // ... do something
-            }
-            is DeserializeResult.Failed -> {
-                // foo message parsing error
-            }
-        }
-    }
-}
-```
-
-## Отправка сообщений
-``` kotlin
-testSmartKafkaProducer.send("message-key", message)
-```
+## Использование
+- 1 В контекст spring добавляется bean platformKafkaFactory: PlatformKafkaFactory, фабрика позволяет получать сконфигурированные producer/consumer kafka beans
 
 ## Конфигурация application.yml
+Большинство настроек producer/consumer задаются автоматически в KafkaIntegrationProperties
+Для producer требуется указать bootstrap-servers / topic
+Для consumer требуется указать bootstrap-servers / topic / group-id / enable-auto-commit: false
+Ниже приведет полный список настроек и их значения по умолчанию
 
 ``` yaml
-foo:
+wet-clinic:
   integration: // пример настройки kafka
     kafka: # Настройки KafkaIntegrationProperties
       producers:
@@ -77,19 +32,15 @@ foo:
           logging-pretty-enabled: true # pretty json при логировании
           metrics-enabled: true       # Метрики
           tracing-enabled: true       # Трассировка
-          fill-headers-from-mdc: true # Нужно ли заполнять заголовки значениями из mdc контекста
       consumers:
         "[consumer-test]":
           enabled: true # используется в паре с ConditionalOnKafkaConsumerConfiguredCondition
           topic: "consumer-test"
-          count: 1 # число kafka consumer в рамках одной единицы deploy, например если вы хотите чтобы pod обрабатывал n партиций вместо одной параллельно, формула расчета count = число партиций в топике / число подов
+          concurrency: 1 # число kafka consumer в рамках одной единицы deploy, например если вы хотите чтобы pod обрабатывал n партиций вместо одной параллельно, формула расчета count = число партиций в топике / число подов
           logging-enabled: true     # Логирование
           logging-pretty-enabled: true # pretty json при логировании
           metrics-enabled: true     # Метрики
           tracing-enabled: true     # Трассировка
-          kafka-extended: # расширенные настройки kafka consumer которые нельзя задать через KafkaProperties.Consumer
-            auto-commit-batch-size: 10 # размер пачки автокомита обработанных сообщений
-            max-poll-timeout: 10000ms # timeout получения записей при чтении из kafka
           kafka: # опциональная настройка для переопделения общих настроек из broker.consumer, необходимо когда у вас несколько consumer в сервисе, формат такой же KafkaProperties.Consumer
       broker: # Список самых важных базовых настроек Kafka на основе Spring KafkaProperties
         bootstrap-servers: localhost:9092
@@ -105,9 +56,9 @@ foo:
             max.in.flight.requests.per.connection: 5 # максимальное число запросов передаваемое за раз в рамках 1 коннекта к брокеру кафка, при ошибках и retry потенциально может изменится порядок отправляемых сообщений
         consumer:
           group-id: ${spring.application.name}
-          enable-auto-commit: false # при true коммит происходит периодически не учитывая обарботались сообщения или нет, при false коммит происходит автоматически батчингом при наполнении пачки обработанных сообщений
+          enable-auto-commit: false # при true коммит происходит периодически не учитывая обработались сообщения или нет, при false коммит происходит автоматически батчингом при наполнении пачки обработанных сообщений
           properties: # список важных настроек по умолчанию
-            auto.commit.interval.ms: 3000 # интервал автокоммита сообщений
+            auto.commit.interval.ms: 1000 # интервал автокоммита сообщений
             auto.offset.reset: earliest # алгоритм выборки записей если для consumer-group не задан offset latest/earliest
             partition.assignment.strategy: "org.apache.kafka.clients.consumer.CooperativeStickyAssignor" # алгоритм балансировки топиков/партиций для consumer-group
             session.timeout.ms: 10000 # время в течении которого считается что consumer жив если не поступали heartbeat.interval.ms, если это время выйдет начнется ребалансировка
@@ -117,8 +68,8 @@ foo:
             fetch.max.bytes: 5242880 # 10MB максимальный объем данных получаемый при вычетке сообщений
         ssl: # Указываем если нужен ssl
           enabled: true 
-          keystore-location: file:/home/jboss/pki/tls-keystore.jks
-          truststore-location: file:/home/jboss/pki/tls-truststore.jks
+          keystore-location: file:tls-keystore.jks
+          truststore-location: file:tls-truststore.jks
           keystore-password: ${KEYSTORE_PASSWORD}
           truststore-password: ${TRUSTSTORE_PASSWORD}
           key-password: ${KEY_PASSWORD} 
@@ -137,17 +88,147 @@ logging:
     ru.nemodev.platform.core.integration.kafka.logging: trace # включение логирования KAFKA запросов, если указать другой уровень логи пропадут у всех consumer/producer
 ```
 
-## Bean Conditions
-Библиотека включает в себя кастомные Spring Conditions.
-Если вам требуется создавать бины producer/consumer в зависимости от наличия их конфигурации в application.yaml - воспользуйтесь аннотациями *ConditionalOnKafkaConsumerConfigured* и *ConditionalOnKafkaProducerConfigured* 
-
-В аннотациях указывается kafkaPrefix - путь до параметра конфигурации KafkaIntegrationProperties,
-а также проверяемый consumerKey / producerKey, с настройкой enabled: true/false, при наличии которого в файле конфигурации создастся бин
-
+## Конфигурация spring
 ``` kotlin
+@ConfigurationProperties("wet-clinic")
+class WetClinicProperties(
+    val integration: WetClinicIntegration
+) {
+    data class WetClinicIntegration(
+        val kafka: KafkaIntegrationProperties
+    )
+}
+
+@Configuration(proxyBeanMethods = false)
+@EnableConfigurationProperties(WetClinicProperties::class)
+class WetClinicIntegrationConfig {
+
+    companion object {
+        private const val WET_CLINIC_PRODUCER_KEY = "wet-clinic.pets.registrations"
+        private const val WET_CLINIC_CONSUMER_KEY = "wet-clinic.pets.registrations"
+    }
+
     @Bean
-    @ConditionalOnKafkaConsumerConfigured(kafkaPrefix = "foo.integration.kafka", consumerKey = "consumer-test")
-    fun testSmartConsumer() = ....
+    fun wetClinicDefaultKafkaProducerFactory(
+        properties: WetClinicProperties,
+        platformKafkaFactory: PlatformKafkaFactory,
+    ): DefaultKafkaProducerFactory<String, PetRegistrationDtoRq> =
+        platformKafkaFactory.createDefaultKafkaProducerFactory(
+            WET_CLINIC_PRODUCER_KEY,
+            properties.integration.kafka
+        )
+
+    @Bean
+    fun wetClinicKafkaTemplate(
+        properties: WetClinicProperties,
+        platformKafkaFactory: PlatformKafkaFactory,
+        wetClinicDefaultKafkaProducerFactory: DefaultKafkaProducerFactory<String, PetRegistrationDtoRq>
+    ): KafkaTemplate<String, PetRegistrationDtoRq> =
+        platformKafkaFactory.createKafkaTemplate(
+            WET_CLINIC_PRODUCER_KEY,
+            properties.integration.kafka,
+            wetClinicDefaultKafkaProducerFactory
+        )
+
+    @Bean
+    fun wetClinicPlatformKafkaProducer(
+        platformKafkaFactory: PlatformKafkaFactory,
+        properties: WetClinicProperties,
+        wetClinicKafkaTemplate: KafkaTemplate<String, PetRegistrationDtoRq>
+    ): PlatformKafkaProducer<PetRegistrationDtoRq> =
+        platformKafkaFactory.createProducer(
+            WET_CLINIC_PRODUCER_KEY,
+            properties.integration.kafka,
+            wetClinicKafkaTemplate
+        )
+
+    @Bean
+    fun wetClinicDefaultKafkaConsumerFactory(
+        properties: WetClinicProperties,
+        platformKafkaFactory: PlatformKafkaFactory
+    ): DefaultKafkaConsumerFactory<String, DeserializeResult<PetRegistrationDtoRq>> =
+        platformKafkaFactory.createDefaultKafkaConsumerFactory(
+            WET_CLINIC_CONSUMER_KEY,
+            properties.integration.kafka,
+            PetRegistrationDtoRq::class.java
+        )
+
+    @Bean
+    fun wetClinicConcurrentKafkaListenerContainerFactory(
+        properties: WetClinicProperties,
+        platformKafkaFactory: PlatformKafkaFactory,
+        wetClinicDefaultKafkaConsumerFactory: DefaultKafkaConsumerFactory<String, DeserializeResult<PetRegistrationDtoRq>>
+    ): ConcurrentKafkaListenerContainerFactory<String, DeserializeResult<PetRegistrationDtoRq>> =
+        platformKafkaFactory.createConcurrentKafkaListenerContainerFactory(
+            WET_CLINIC_CONSUMER_KEY,
+            properties.integration.kafka,
+            wetClinicDefaultKafkaConsumerFactory
+        )
+}
+```
+
+## Отправка сообщений
+``` kotlin
+@AsyncGenericOperationBinding(
+    type = "kafka",
+    fields = [
+        "bindingVersion=1.0.0",
+        "groupId.type=string",
+        "groupId.enum=wet-clinic.pets.registrations"
+    ]
+)
+@AsyncPublisher(
+    operation = AsyncOperation(
+        channelName = "wet-clinic.pets.registrations.v1",
+        description = "Публикация сообщения регистрации питомца",
+        payloadType = PetRegistrationDtoRq::class
+    )
+)
+private fun producePetRegistrationMessage(
+    key: String,
+    @Payload value: PetRegistrationDtoRq
+) = wetClinicPlatformKafkaProducer.send(key, value)
+```
+
+## Получение сообщений
+``` kotlin
+@AsyncGenericOperationBinding(
+    type = "kafka",
+    fields = [
+        "bindingVersion=1.0.0",
+        "groupId.type=string",
+        "groupId.enum=wet-clinic.pets.registrations"
+    ]
+)
+@AsyncListener(
+    operation = AsyncOperation(
+        channelName = "wet-clinic.pets.registrations.v1",
+        description = "Обработка полученного сообщения регистрации питомца",
+        payloadType = PetRegistrationDtoRq::class
+    )
+)
+@KafkaListener(
+    containerFactory = "wetClinicConcurrentKafkaListenerContainerFactory"
+)
+fun process(@Payload message: ConsumerRecord<String, DeserializeResult<PetRegistrationDtoRq>>) {
+    when(val petData = message.value()) {
+        is DeserializeResult.Success -> {
+            val petRegistration = petData.data
+
+            val pet = petService.findById(petRegistration.id)
+            if (pet != null) {
+                pet.petDetail.wetClinicRegistered = true
+                petService.update(pet)
+                logInfo {
+                    "Питомец id = ${pet.id} name = ${pet.petDetail.name} поставлен на учет в вет клинике =)"
+                }
+            }
+        }
+        is DeserializeResult.Failed -> {
+
+        }
+    }
+}
 ```
 
 ## Описание AsyncApi
@@ -173,7 +254,7 @@ class WetClinicKafkaMessageProducer {
             payloadType = Message::class
         )
     )
-    override fun publish(@Payload message: Message) {
+    fun publish(@Payload message: MyMessageEventDto) {
     }
 }
 ```
@@ -197,12 +278,12 @@ class WetClinicKafkaMessageProcessor : KafkaMessageProcessor<PetRegistrationDtoR
             payloadType = PetRegistrationEventDto::class
         )
     )
-    override fun process(@Payload message: ReceiverRecord<String, DeserializeResult<PetRegistrationDtoRq>>) {
+    fun process(@Payload message: ConsumerRecord<String, DeserializeResult<PetRegistrationDtoRq>>) {
     }
 }
 ```
 
-### Пример конфигурации параметров (необязательно)
+### Пример конфигурации springwolf и их значения по умолчанию
 ```yaml
 springwolf:
   enabled: true

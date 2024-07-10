@@ -8,52 +8,76 @@ import org.apache.kafka.common.serialization.Serializer
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory
+import org.springframework.kafka.config.KafkaListenerEndpoint
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
+import org.springframework.kafka.listener.ConcurrentMessageListenerContainer
+import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.support.serializer.JsonDeserializer
 import org.springframework.kafka.support.serializer.JsonSerializer
 import ru.nemodev.platform.core.integration.kafka.config.KafkaIntegrationProperties
 import ru.nemodev.platform.core.integration.kafka.deserializer.DeserializeResult
 import ru.nemodev.platform.core.integration.kafka.deserializer.KeyDeserializer
 import ru.nemodev.platform.core.integration.kafka.deserializer.LoggingDeserializer
-import ru.nemodev.platform.core.integration.kafka.deserializer.SmartJsonDeserializer
+import ru.nemodev.platform.core.integration.kafka.deserializer.PlatformJsonDeserializer
 import ru.nemodev.platform.core.integration.kafka.logging.KafkaMessageLogger
+import ru.nemodev.platform.core.integration.kafka.producer.PlatformKafkaProducer
+import ru.nemodev.platform.core.integration.kafka.producer.PlatformKafkaProducerImpl
 import ru.nemodev.platform.core.integration.kafka.serialaizer.LoggingSerializer
+import ru.nemodev.platform.core.integration.kafka.tracing.PlatformKafkaListenerObservationConvention
+import ru.nemodev.platform.core.integration.kafka.tracing.PlatformKafkaTemplateObservationConvention
 import ru.nemodev.platform.core.logging.sl4j.Loggable
 
 
-interface KafkaFactory {
+interface PlatformKafkaFactory {
 
-    fun <T> createProducer(
+    fun <T> createDefaultKafkaProducerFactory(
         key: String,
         properties: KafkaIntegrationProperties,
         serializer: Serializer<T>? = null
+    ): DefaultKafkaProducerFactory<String, T>
+
+    fun <T> createKafkaTemplate(
+        key: String,
+        properties: KafkaIntegrationProperties,
+        defaultKafkaProducerFactory: DefaultKafkaProducerFactory<String, T>
     ): KafkaTemplate<String, T>
 
-    fun <T> createConsumer(
-        key: String, properties: KafkaIntegrationProperties,
+    fun <T: Any> createProducer(
+        key: String,
+        properties: KafkaIntegrationProperties,
+        kafkaTemplate: KafkaTemplate<String, T>
+    ): PlatformKafkaProducer<T>
+
+    fun <T> createDefaultKafkaConsumerFactory(
+        key: String,
+        properties: KafkaIntegrationProperties,
         clazz: Class<T>? = null,
         deserializer: Deserializer<T>? = null
+    ): DefaultKafkaConsumerFactory<String, DeserializeResult<T>>
+
+    fun <T> createConcurrentKafkaListenerContainerFactory(
+        key: String,
+        properties: KafkaIntegrationProperties,
+        defaultKafkaConsumerFactory: DefaultKafkaConsumerFactory<String, DeserializeResult<T>>
     ): ConcurrentKafkaListenerContainerFactory<String, DeserializeResult<T>>
 }
 
-class KafkaFactoryImpl(
+class PlatformKafkaFactoryImpl(
     private val objectMapper: ObjectMapper,
-    private val kafkaMessageLogger: KafkaMessageLogger,
-//    private val micrometerProducerListener: MicrometerProducerListener<*, *>,
-//    private val micrometerConsumerListener: MicrometerConsumerListener<*, *>
-) : KafkaFactory {
+    private val kafkaMessageLogger: KafkaMessageLogger
+) : PlatformKafkaFactory {
 
     companion object : Loggable
 
-    override fun <T> createProducer(
+    override fun <T> createDefaultKafkaProducerFactory(
         key: String,
         properties: KafkaIntegrationProperties,
         serializer: Serializer<T>?
-    ): KafkaTemplate<String, T> {
+    ): DefaultKafkaProducerFactory<String, T> {
 
-        val producer = properties.producers[key]
+        val producerProperties = properties.producers[key]
             ?: throw IllegalArgumentException("Для producer-key = $key не заданы настройки")
 
         val producerConfig = properties.broker
@@ -62,43 +86,62 @@ class KafkaFactoryImpl(
 
         val keySerializer = StringSerializer()
             .let {
-                if (producer.loggingEnabled) {
-                    LoggingSerializer(it, true, kafkaMessageLogger, producer.loggingPrettyEnabled)
+                if (producerProperties.loggingEnabled) {
+                    LoggingSerializer(it, true, kafkaMessageLogger, producerProperties.loggingPrettyEnabled)
                 } else { it }
             }
 
         val valueSerializer = (serializer ?: JsonSerializer(objectMapper)).let {
-            if (producer.loggingEnabled) {
-                LoggingSerializer(it, false, kafkaMessageLogger, producer.loggingPrettyEnabled)
+            if (producerProperties.loggingEnabled) {
+                LoggingSerializer(it, false, kafkaMessageLogger, producerProperties.loggingPrettyEnabled)
             } else { it }
         }
 
-        val factory = DefaultKafkaProducerFactory<String, T>(producerConfig).apply {
+        return DefaultKafkaProducerFactory<String, T>(producerConfig).apply {
             setKeySerializer(keySerializer)
             setValueSerializer(valueSerializer)
-//            if (producer.metricsEnabled) {
-//                addListener(micrometerProducerListener)
-//            }
-        }
-
-        return KafkaTemplate<String, T>(factory).apply {
-            setMicrometerEnabled(producer.metricsEnabled)
-            setObservationEnabled(producer.tracingEnabled)
         }
     }
 
-    override fun <T> createConsumer(
-        key: String, properties: KafkaIntegrationProperties,
+    override fun <T> createKafkaTemplate(
+        key: String,
+        properties: KafkaIntegrationProperties,
+        defaultKafkaProducerFactory: DefaultKafkaProducerFactory<String, T>
+    ): KafkaTemplate<String, T> {
+        val producerProperties = properties.producers[key]
+            ?: throw IllegalArgumentException("Для producer-key = $key не заданы настройки")
+
+        return KafkaTemplate<String, T>(defaultKafkaProducerFactory).apply {
+            setMicrometerEnabled(producerProperties.metricsEnabled)
+            setObservationEnabled(producerProperties.tracingEnabled)
+            setObservationConvention(
+                PlatformKafkaTemplateObservationConvention(
+                    properties.broker.bootstrapServers.joinToString()
+                )
+            )
+        }
+    }
+
+    override fun <T : Any> createProducer(
+        key: String,
+        properties: KafkaIntegrationProperties,
+        kafkaTemplate: KafkaTemplate<String, T>
+    ): PlatformKafkaProducer<T> {
+        return PlatformKafkaProducerImpl(
+            topic = properties.producers[key]!!.topic,
+            kafkaTemplate = kafkaTemplate
+        )
+    }
+
+    override fun <T> createDefaultKafkaConsumerFactory(
+        key: String,
+        properties: KafkaIntegrationProperties,
         clazz: Class<T>?,
         deserializer: Deserializer<T>?
-    ): ConcurrentKafkaListenerContainerFactory<String, DeserializeResult<T>> {
+    ): DefaultKafkaConsumerFactory<String, DeserializeResult<T>> {
 
         val consumerProperties = properties.consumers[key]
             ?: throw IllegalArgumentException("Для consumer-key = $key не заданы настройки")
-
-        require(consumerProperties.count >= 1) {
-            "Для consumer-key = $key настройка count должна быть >= 1"
-        }
 
         val consumerConfig: MutableMap<String, Any> = properties.broker
             .buildConsumerProperties(null)
@@ -111,19 +154,36 @@ class KafkaFactoryImpl(
                 populateDefaultConsumerProperties(it)
             }
 
-        return ConcurrentKafkaListenerContainerFactory<String, DeserializeResult<T>>().apply {
-            consumerFactory = DefaultKafkaConsumerFactory<String, DeserializeResult<T>>(consumerConfig).apply {
-                setKeyDeserializer(KeyDeserializer(StringDeserializer()))
-                setValueDeserializer(getValueDeserializer(consumerProperties, clazz, deserializer))
-//            if (consumer.metricsEnabled) {
-//                addListener(micrometerConsumerListener)
-//            }
+        return DefaultKafkaConsumerFactory<String, DeserializeResult<T>>(consumerConfig).apply {
+            setKeyDeserializer(KeyDeserializer(StringDeserializer()))
+            setValueDeserializer(getValueDeserializer(consumerProperties, clazz, deserializer))
+        }
+    }
+
+    override fun <T> createConcurrentKafkaListenerContainerFactory(
+        key: String,
+        properties: KafkaIntegrationProperties,
+        defaultKafkaConsumerFactory: DefaultKafkaConsumerFactory<String, DeserializeResult<T>>
+    ): ConcurrentKafkaListenerContainerFactory<String, DeserializeResult<T>> {
+        val consumerProperties = properties.consumers[key]
+            ?: throw IllegalArgumentException("Для consumer-key = $key не заданы настройки")
+
+        require(consumerProperties.concurrency >= 1) {
+            "Для consumer-key = $key настройка count должна быть >= 1"
+        }
+
+        return object : ConcurrentKafkaListenerContainerFactory<String, DeserializeResult<T>>() {
+            override fun createContainerInstance(endpoint: KafkaListenerEndpoint): ConcurrentMessageListenerContainer<String, DeserializeResult<T>> {
+                return ConcurrentMessageListenerContainer(defaultKafkaConsumerFactory, ContainerProperties(consumerProperties.topic))
             }
-            setConcurrency(consumerProperties.count)
-            setContainerCustomizer {
-                containerProperties.isMicrometerEnabled = consumerProperties.metricsEnabled
-                containerProperties.isObservationEnabled = consumerProperties.tracingEnabled
-            }
+        }.apply {
+            consumerFactory = defaultKafkaConsumerFactory
+            setConcurrency(consumerProperties.concurrency)
+            containerProperties.isMicrometerEnabled = consumerProperties.metricsEnabled
+            containerProperties.isObservationEnabled = consumerProperties.tracingEnabled
+            containerProperties.observationConvention = PlatformKafkaListenerObservationConvention(
+                properties.broker.bootstrapServers.joinToString()
+            )
         }
     }
 
@@ -142,7 +202,7 @@ class KafkaFactoryImpl(
             properties[ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG] = false
         }
         if (properties[ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG] == null) {
-            properties[ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG] = 3000
+            properties[ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG] = 1000
         }
         if (properties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] == null) {
             properties[ConsumerConfig.AUTO_OFFSET_RESET_CONFIG] = "earliest"
@@ -178,7 +238,7 @@ class KafkaFactoryImpl(
         JsonDeserializer(clazz, objectMapper, clazz == null)
             .also { it.addTrustedPackages("*") }
 
-        return SmartJsonDeserializer(newDeserializer).let {
+        return PlatformJsonDeserializer(newDeserializer).let {
             if (consumer.loggingEnabled) {
                 LoggingDeserializer(it, kafkaMessageLogger, consumer.loggingPrettyEnabled)
             }

@@ -10,11 +10,16 @@ import ru.nemodev.platform.core.logging.sl4j.trace
 
 interface KafkaMessageLogger {
 
+    enum class Direction(val type: String) {
+        PRODUCER("producer"),
+        CONSUMER("consumer")
+    }
+
     fun enabled(): Boolean
 
     fun logMessage(
         loggingPrettyEnabled: Boolean,
-        direction: String,
+        direction: Direction,
         topic: String,
         headers: Map<String, String>,
         key: String, message: String
@@ -33,7 +38,7 @@ class KafkaMessageLoggerImpl(
 
     override fun logMessage(
         loggingPrettyEnabled: Boolean,
-        direction: String,
+        direction: KafkaMessageLogger.Direction,
         topic: String,
         headers: Map<String, String>,
         key: String,
@@ -43,7 +48,7 @@ class KafkaMessageLoggerImpl(
             formatLogMessage(
                 objectMapper.createObjectNode().apply {
                     put("type", MESSAGE_TYPE)
-                    put("direction", direction)
+                    put("direction", direction.type)
                     put("topic", topic)
                     put("key", key)
                     putIfAbsent("headers", objectMapper.createObjectNode()
