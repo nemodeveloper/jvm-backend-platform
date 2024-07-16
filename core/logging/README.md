@@ -43,7 +43,7 @@ logging:
   level:
     root: info # базовый уровень логирования МСа
     org.zalando.logbook: trace
-    ru.nemodev.platfotm.core.logging: trace # включение логирования HTTP запросов, если указать уровень выше логи пропадут
+    ru.nemodev.platform.core.logging: trace # включение логирования HTTP запросов, если указать уровень выше логи пропадут
 ```
 
 ## 1.1 - Продвинутые HTTP логи

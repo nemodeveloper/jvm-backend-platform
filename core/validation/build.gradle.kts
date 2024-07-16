@@ -18,7 +18,8 @@ java.sourceCompatibility = JavaVersion.VERSION_21
 dependencies {
     // spring
     api(libs.spring.boot.starter)
-    api(libs.spring.boot.web)
+    api(libs.spring.webmvc)
+//    api(libs.jakarta.servlet.api)
     api(libs.spring.boot.validation)
     kapt(libs.spring.boot.configuration.processor)
 
@@ -61,10 +62,10 @@ tasks {
 publishing {
     repositories {
         maven {
-            url = uri(project.extra["publishing-repo-url"] as String)
+            url = uri(project.extra["publish-repo-url"] as String)
             credentials {
-                username = System.getenv("GIT_PLATFORM_USER") ?: extra.properties["nexus-ci-username"] as String?
-                password = System.getenv("GIT_PLATFORM_PASSWORD") ?: extra.properties["nexus-ci-password"] as String?
+                username = project.extra["publish-repo-user"] as String
+                password = project.extra["publish-repo-password"] as String
             }
         }
     }

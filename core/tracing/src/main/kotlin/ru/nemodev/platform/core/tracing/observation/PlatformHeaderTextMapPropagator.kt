@@ -21,7 +21,9 @@ class PlatformHeaderTextMapPropagator(
         }
         PlatformObservationConst.platformPropagationHeaders.forEach { headerName ->
             when (headerName) {
-                ApiHeaderNames.SERVICE_INITIATOR -> applicationName
+                ApiHeaderNames.SERVICE_INITIATOR -> {
+                    setter.set(carrier, headerName, applicationName)
+                }
                 else -> {
                     platformHeadersContext[headerName]?.let {
                         setter.set(carrier, headerName, it)

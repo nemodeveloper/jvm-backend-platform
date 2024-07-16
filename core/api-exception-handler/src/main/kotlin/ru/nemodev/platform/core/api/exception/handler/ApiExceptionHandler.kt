@@ -4,21 +4,19 @@ import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.exc.InvalidFormatException
 import com.fasterxml.jackson.databind.exc.MismatchedInputException
 import io.micrometer.observation.ObservationRegistry
+import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.hibernate.validator.internal.engine.path.PathImpl
-import org.springframework.core.io.buffer.DataBufferLimitException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.http.converter.HttpMessageNotReadableException
+import org.springframework.validation.BindException
 import org.springframework.validation.FieldError
 import org.springframework.validation.ObjectError
+import org.springframework.web.ErrorResponse
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.bind.support.WebExchangeBindException
-import org.springframework.web.server.MethodNotAllowedException
-import org.springframework.web.server.ServerWebInputException
-import org.springframework.web.server.UnsupportedMediaTypeStatusException
-import org.springframework.web.servlet.resource.NoResourceFoundException
 import ru.nemodev.platform.core.api.dto.error.ErrorDtoRs
 import ru.nemodev.platform.core.api.dto.error.ErrorFieldDtoRs
 import ru.nemodev.platform.core.api.dto.error.StatusDtoRs
@@ -41,36 +39,55 @@ class ApiExceptionHandler(
 
     // Обработка 4** ошибок
 
-    @ExceptionHandler(ConstraintViolationException::class)
-    fun onConstraintValidationException(
-        exception: ConstraintViolationException,
+    @ExceptionHandler(HttpMessageNotReadableException::class)
+    fun handelHttpMessageNotReadableException(
+        exception: HttpMessageNotReadableException,
         request: HttpServletRequest
     ): ResponseEntity<ErrorDtoRs> {
-
         processError(exception, request)
 
-        val errors = exception.constraintViolations.map { error ->
-            ErrorFieldDtoRs(
-                key = (error.propertyPath as PathImpl).leafNode.toString(),
-                code = properties.getExternalErrorFieldCode(error.constraintDescriptor.annotation.annotationClass.simpleName ?: FIELD_BAD_VALUE_CODE),
-                description = error.message
-            )
+        val rootCause = exception.rootCause
+        var errorMessage = ""
+        var field: String? = null
+        var description: String? = null
+        var code = ""
+        when (rootCause) {
+            is InvalidFormatException -> {
+                field = extractInvalidFieldPath(rootCause)
+                code = BaseErrorCode.INVALID_FIELD_FORMAT.name
+                errorMessage = "Поле $field должно иметь тип ${rootCause.targetType}"
+            }
+            is MismatchedInputException -> {
+                field = extractInvalidFieldPath(rootCause)
+                code = BaseErrorCode.FIELD_REQUIRED.name
+                errorMessage = "Отсутствует обязательное поле $field"
+            }
+            else -> {
+                description = "$BAD_REQUEST_ERROR_MESSAGE: ${exception.message}"
+            }
         }
 
-        return ResponseEntity.unprocessableEntity().body(
+        return ResponseEntity.badRequest().body(
             ErrorDtoRs(
                 status = StatusDtoRs(
-                    code = HttpStatus.UNPROCESSABLE_ENTITY.name,
-                    description = UNPROCESSABLE_ENTITY_REQUEST_MESSAGE
+                    code = HttpStatus.BAD_REQUEST.name,
+                    description = description ?: BAD_REQUEST_ERROR_MESSAGE
                 ),
-                errors = errors
+                errors = if (field == null) null else
+                    listOf(
+                        ErrorFieldDtoRs(
+                            key = field,
+                            code = code,
+                            description = errorMessage
+                        )
+                    )
             )
         )
     }
 
-    @ExceptionHandler(WebExchangeBindException::class)
+    @ExceptionHandler(BindException::class)
     fun handleBadRequestValidationExceptions(
-        exception: WebExchangeBindException,
+        exception: BindException,
         request: HttpServletRequest
     ): ResponseEntity<ErrorDtoRs> {
 
@@ -81,7 +98,7 @@ class ApiExceptionHandler(
 
             if (fieldError == null) {
                 ErrorFieldDtoRs(
-                    key = extractFieldFromWebExchangeBindException(error.defaultMessage!!),
+                    key = extractFieldFromBindException(error.defaultMessage!!),
                     code = properties.getExternalErrorFieldCode("NotEmpty"),
                     description = error.defaultMessage ?: "Некорректное значение"
                 )
@@ -113,133 +130,67 @@ class ApiExceptionHandler(
             ErrorDtoRs(
                 status = StatusDtoRs(
                     code = HttpStatus.UNPROCESSABLE_ENTITY.name,
-                    description = UNPROCESSABLE_ENTITY_REQUEST_MESSAGE
+                    description = UNPROCESSABLE_ENTITY_ERROR_MESSAGE
                 ),
                 errors = errors
             )
         )
     }
 
-    @ExceptionHandler(ServerWebInputException::class)
-    fun handleBadRequestException(
-        exception: ServerWebInputException,
+    @ExceptionHandler(ConstraintViolationException::class)
+    fun onConstraintValidationException(
+        exception: ConstraintViolationException,
         request: HttpServletRequest
     ): ResponseEntity<ErrorDtoRs> {
-
         processError(exception, request)
 
-        val rootCause = exception.rootCause
-        var errorMessage = ""
-        var field: String? = null
-        var description: String? = null
-        var code = ""
-        when (rootCause) {
-            is InvalidFormatException -> {
-                field = extractInvalidFieldPath(rootCause)
-                code = BaseErrorCode.INVALID_FIELD_FORMAT.name
-                errorMessage = "Поле $field должно иметь тип ${rootCause.targetType}"
-            }
-            is MismatchedInputException -> {
-                field = extractInvalidFieldPath(rootCause)
-                code = BaseErrorCode.FIELD_REQUIRED.name
-                errorMessage = "Отсутствует обязательное поле $field"
-            }
-            else -> {
-                description = "$BAD_REQUEST_MESSAGE: ${exception.reason}"
-            }
+        val errors = exception.constraintViolations.map { error ->
+            ErrorFieldDtoRs(
+                key = (error.propertyPath as PathImpl).leafNode.toString(),
+                code = properties.getExternalErrorFieldCode(error.constraintDescriptor.annotation.annotationClass.simpleName ?: FIELD_BAD_VALUE_CODE),
+                description = error.message
+            )
         }
 
-        return ResponseEntity.badRequest().body(
-            ErrorDtoRs(
-                status = StatusDtoRs(
-                    code = HttpStatus.BAD_REQUEST.name,
-                    description = description ?: BAD_REQUEST_MESSAGE
-                ),
-                errors = if (field == null) null else
-                    listOf(
-                        ErrorFieldDtoRs(
-                            key = field,
-                            code = code,
-                            description = errorMessage
-                        )
-                    )
-                )
-            )
-    }
-
-    @ExceptionHandler(MethodNotAllowedException::class)
-    fun handleBadRequestException(
-        exception: MethodNotAllowedException,
-        request: HttpServletRequest
-    ): ResponseEntity<ErrorDtoRs> {
-
-        processError(exception, request)
-
-        return ResponseEntity(
-            ErrorDtoRs(
-                status = StatusDtoRs(
-                    code = HttpStatus.METHOD_NOT_ALLOWED.name,
-                    description = "HTTP метод не поддерживается для данного URL: ${exception.reason}"
-                )
-            ),
-            HttpStatus.METHOD_NOT_ALLOWED
-        )
-    }
-
-    @ExceptionHandler(UnsupportedMediaTypeStatusException::class)
-    fun handleBadRequestException(
-        exception: UnsupportedMediaTypeStatusException,
-        request: HttpServletRequest
-    ): ResponseEntity<ErrorDtoRs> {
-
-        processError(exception, request)
-
-        return ResponseEntity(
-            ErrorDtoRs(
-                status = StatusDtoRs(
-                    code = HttpStatus.UNSUPPORTED_MEDIA_TYPE.name,
-                    description = "HTTP media type не поддерживается для данного URL: ${exception.reason}"
-                )
-            ),
-            HttpStatus.METHOD_NOT_ALLOWED
-        )
-    }
-
-    @ExceptionHandler(DataBufferLimitException::class)
-    fun handleDataBufferLimitException(
-        exception: DataBufferLimitException,
-        request: HttpServletRequest
-    ): ResponseEntity<ErrorDtoRs> {
-
-        processError(exception, request)
-
-        return ResponseEntity(
+        return ResponseEntity.unprocessableEntity().body(
             ErrorDtoRs(
                 status = StatusDtoRs(
                     code = HttpStatus.UNPROCESSABLE_ENTITY.name,
-                    description = "Превышен размер загружаемого файла"
-                )
-            ),
-            HttpStatus.UNPROCESSABLE_ENTITY
+                    description = UNPROCESSABLE_ENTITY_ERROR_MESSAGE
+                ),
+                errors = errors
+            )
         )
     }
 
-    @ExceptionHandler(NoResourceFoundException::class)
-    fun handleNoResourceFoundException(
-        exception: NoResourceFoundException,
+    @ExceptionHandler(ServletException::class)
+    fun handleServletException(
+        exception: ServletException,
         request: HttpServletRequest
     ): ResponseEntity<ErrorDtoRs> {
-
         processError(exception, request)
+
+        if (exception is ErrorResponse) {
+            val httpStatus = HttpStatus.valueOf(exception.statusCode.value())
+            return ResponseEntity(
+                ErrorDtoRs(
+                    status = StatusDtoRs(
+                        code = httpStatus.name,
+                        description = exception.body.detail ?: BAD_REQUEST_ERROR_MESSAGE
+                    )
+                ),
+                httpStatus
+            )
+        }
 
         return ResponseEntity(
             ErrorDtoRs(
                 status = StatusDtoRs(
-                    code = HttpStatus.NOT_FOUND.name,
-                    description = "Ресурс не найден"
+                    code = HttpStatus.INTERNAL_SERVER_ERROR.name,
+                    description = INTERNAL_SERVER_ERROR_MESSAGE
                 )
             ),
-            HttpStatus.NOT_FOUND
+            HttpStatus.INTERNAL_SERVER_ERROR
         )
     }
 
@@ -300,7 +251,7 @@ class ApiExceptionHandler(
             ErrorDtoRs(
                 status = StatusDtoRs(
                     code = HttpStatus.INTERNAL_SERVER_ERROR.name,
-                    description = "Внутренняя ошибка сервиса"
+                    description = INTERNAL_SERVER_ERROR_MESSAGE
                 )
             )
         )
@@ -313,8 +264,10 @@ class ApiExceptionHandler(
 
     companion object : Loggable {
 
-        private const val BAD_REQUEST_MESSAGE = "Некорректный формат запроса"
-        private const val UNPROCESSABLE_ENTITY_REQUEST_MESSAGE = "Ошибка валидации"
+        private const val BAD_REQUEST_ERROR_MESSAGE = "Некорректный формат запроса"
+        private const val INTERNAL_SERVER_ERROR_MESSAGE = "Внутренняя ошибка сервиса"
+        private const val UNPROCESSABLE_ENTITY_ERROR_MESSAGE = "Ошибка валидации"
+
         private const val FIELD_BAD_VALUE_CODE = "BAD_VALUE"
 
         private val INVALID_FORMAT_FIELD_REGEXP = """[^"]*("[^"]+")[^"]*$""".toRegex()
@@ -364,10 +317,10 @@ class ApiExceptionHandler(
             return mismatchedFieldKey.nullIfEmpty()
         }
 
-        fun extractFieldFromWebExchangeBindException(input: String): String {
-            val index = input.lastIndexOf(WEB_EXCHANGE_BIND_EXCEPTION_DELIMITER)
+        fun extractFieldFromBindException(exceptionMessage: String): String {
+            val index = exceptionMessage.lastIndexOf(WEB_EXCHANGE_BIND_EXCEPTION_DELIMITER)
 
-            return input.substring(index + WEB_EXCHANGE_BIND_EXCEPTION_DELIMITER.length).trim()
+            return exceptionMessage.substring(index + WEB_EXCHANGE_BIND_EXCEPTION_DELIMITER.length).trim()
         }
     }
 }

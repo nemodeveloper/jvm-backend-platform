@@ -81,7 +81,6 @@ dependencyResolutionManagement {
             library("spring-web", "org.springframework:spring-web:$springVersion")
             library("spring-webmvc", "org.springframework:spring-webmvc:$springVersion")
             // TODO перейти на undertow когда будет поддержка virtual threads с 3.3.2
-            //  убрать везде зависимость api(libs.spring.boot.web) кроме core-http-server
             library("spring-boot-web", "org.springframework.boot:spring-boot-starter-web:$springBootVersion")
             library("jakarta-servlet-api", "jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
 
@@ -105,11 +104,9 @@ dependencyResolutionManagement {
 
             // base actuator + prometheus
             val micrometerVersion = "1.13.1"
-            val micrometerContextPropagationVersion = "1.1.1"
             library("spring-boot-actuator", "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
             library("micrometer", "io.micrometer:micrometer-core:$micrometerVersion")
             library("prometheus", "io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
-            library("micrometer-context-propagation", "io.micrometer:context-propagation:$micrometerContextPropagationVersion")
 
             // base tracing
             val micrometerTracingVersion = "1.3.1"

@@ -76,11 +76,20 @@ class TracingConfig {
     @ConditionalOnProperty("platform.core.tracing.base-api-enabled", havingValue = "false", matchIfMissing = true)
     fun excludeBaseApiObservationPredicate(): ObservationPredicate {
         return ObservationPredicate { _, context ->
-            if (context is ServerRequestObservationContext) {
-                val apiPath = context.carrier.requestURI
-                !baseApiObservationPaths.any { apiPath.contains(it) }
-            } else {
-                true
+            when (context) {
+                is ServerRequestObservationContext -> {
+                    val apiPath = context.carrier.requestURI
+                    !baseApiObservationPaths.any { apiPath.contains(it) }
+                }
+
+                is org.springframework.http.server.reactive.observation.ServerRequestObservationContext -> {
+                    val apiPath = context.carrier.uri.path
+                    !baseApiObservationPaths.any { apiPath.contains(it) }
+                }
+
+                else -> {
+                    true
+                }
             }
         }
     }
