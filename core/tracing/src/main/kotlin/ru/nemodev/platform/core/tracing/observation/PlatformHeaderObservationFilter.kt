@@ -16,7 +16,7 @@ class PlatformHeaderObservationFilter(
         val platformHeaderHighCardinalityKeys = mapOf(
             ApiHeaderNames.REQUEST_ID to "platform.request.id",
             ApiHeaderNames.USER_ID to "platform.user.id",
-            ApiHeaderNames.LOG_MODE to "platform.log.mode"
+            ApiHeaderNames.DEBUG_MODE to "platform.debug.mode"
         )
     }
 

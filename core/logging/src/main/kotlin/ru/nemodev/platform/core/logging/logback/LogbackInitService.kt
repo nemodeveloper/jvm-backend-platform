@@ -28,7 +28,7 @@ class LogbackInitService(
         val loggingFormat: LoggingFormat = environmentService.getLoggingFormat(loggingProperties.format)
         val jsonEncoder = logstashEncoderFactory.create()
         (LoggerFactory.getILoggerFactory() as LoggerContext).also { loggerContext ->
-            loggerContext.addTurboFilter(DebugModeTurboFilter(loggingProperties.logPackages))
+            loggerContext.addTurboFilter(DebugModeTurboFilter(loggingProperties.debugModeLogPackages))
             loggerContext.loggerList.forEach { logger ->
                 logger.iteratorForAppenders().forEach { appender ->
                     logger.detachAppender(appender.name)

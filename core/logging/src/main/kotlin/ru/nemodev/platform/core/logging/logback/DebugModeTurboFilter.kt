@@ -8,7 +8,7 @@ import ch.qos.logback.core.spi.FilterReply.ACCEPT
 import ch.qos.logback.core.spi.FilterReply.NEUTRAL
 import org.slf4j.MDC
 import org.slf4j.Marker
-import ru.nemodev.platform.core.logging.mdc.MdcContextVariableNames.LOG_MODE
+import ru.nemodev.platform.core.api.headers.ApiHeaderNames
 
 class DebugModeTurboFilter(
     private val logPackages: Set<String>
@@ -22,7 +22,7 @@ class DebugModeTurboFilter(
         params: Array<out Any>?,
         t: Throwable?
     ): FilterReply = when {
-        MDC.get(LOG_MODE) == "true" && logPackages.any { logger.name.startsWith(it) } -> ACCEPT
+        MDC.get(ApiHeaderNames.DEBUG_MODE) == "true" && logPackages.any { logger.name.startsWith(it) } -> ACCEPT
         else -> NEUTRAL
     }
 }

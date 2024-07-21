@@ -31,7 +31,7 @@ class PlatformHeaderEventListener : EventListener {
             ?.get(PlatformObservationConst.platformHeadersContextKey)
             ?: return
 
-        PlatformObservationConst.platformPropagationHeaders.forEach { headerName ->
+        PlatformObservationConst.platformObservationHeaders.forEach { headerName ->
             platformHeaderContext[headerName]?.let {
                 MDC.put(headerName, it)
             }
@@ -43,7 +43,7 @@ class PlatformHeaderEventListener : EventListener {
             ?.get(PlatformObservationConst.platformHeadersContextKey)
             ?: return
 
-        PlatformObservationConst.platformPropagationHeaders.forEach { headerName ->
+        PlatformObservationConst.platformObservationHeaders.forEach { headerName ->
             platformHeaderContext[headerName]?.let {
                 MDC.put(headerName, it)
             }
@@ -51,7 +51,7 @@ class PlatformHeaderEventListener : EventListener {
     }
 
     private fun onScopeClosed() {
-        PlatformObservationConst.platformPropagationHeaders.forEach {
+        PlatformObservationConst.platformObservationHeaders.forEach {
             MDC.remove(it)
         }
     }

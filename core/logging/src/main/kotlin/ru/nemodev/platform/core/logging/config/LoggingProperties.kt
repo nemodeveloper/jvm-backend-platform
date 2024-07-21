@@ -20,7 +20,7 @@ data class LoggingProperties(
     @DefaultValue
     val masking: List<MaskingPattern>,
     @DefaultValue("ru.nemodev")
-    val logPackages: Set<String>
+    val debugModeLogPackages: Set<String>
 ) {
     data class BodyLogging(
         @DefaultValue("JSON_PRETTY")

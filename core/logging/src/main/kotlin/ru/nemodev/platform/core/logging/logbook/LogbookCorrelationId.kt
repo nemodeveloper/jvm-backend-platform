@@ -4,7 +4,6 @@ import org.slf4j.MDC
 import org.zalando.logbook.CorrelationId
 import org.zalando.logbook.HttpRequest
 import ru.nemodev.platform.core.api.headers.ApiHeaderNames
-import ru.nemodev.platform.core.logging.mdc.MdcContextVariableNames
 import ru.nemodev.platform.core.service.generator.IdGeneratorService
 
 class LogbookCorrelationId(
@@ -12,7 +11,7 @@ class LogbookCorrelationId(
 ) : CorrelationId {
     override fun generate(request: HttpRequest): String {
         return request.headers[ApiHeaderNames.REQUEST_ID]?.firstOrNull()
-            ?: MDC.get(MdcContextVariableNames.REQUEST_ID)
+            ?: MDC.get(ApiHeaderNames.REQUEST_ID)
             ?: idGeneratorService.generateId()
     }
 }

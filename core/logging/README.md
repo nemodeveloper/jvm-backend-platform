@@ -31,7 +31,7 @@ platform:
             - path: "$..accountNumber"
             - path: '$..[?(@.key == "ACCOUNT_NUMBER")].value'
       masking: ""
-      log-packages: "ru.nemodev"
+      debug-mode-log-packages: "ru.nemodev"
       
 logbook:
   # смотри LogbookProperties
@@ -50,5 +50,5 @@ logging:
 Класс LogbookHttpLogFormatter
 - Логирует запросы/ответы под уровнем TRACE
 - В рамках одного лога логирует весь запрос/ответ
-- Если в запросе сервиса передать заголовок x-log-mode=true, будет принудительно включено логирование указанных пакетов в log-packages
-- Используйте platform.core.logging.format: JSON_COMPACT для корректного отображения логов в Grafana
+- Если в запросе сервиса передать заголовок x-debug-mode=true, будет принудительно включено логирование указанных пакетов в debug-mode-log-packages
+- Используйте platform.core.logging.format: JSON_COMPACT для корректного отображения логов в Grafana в виде одной строки json формата

@@ -35,7 +35,7 @@ class PlatformHeaderTextMapPropagator(
 
     override fun <C : Any?> extract(context: Context, carrier: C?, getter: TextMapGetter<C>): Context {
         val platformHeadersContext = mutableMapOf<String, String>()
-        PlatformObservationConst.platformPropagationHeaders.forEach { headerName ->
+        PlatformObservationConst.platformObservationHeaders.forEach { headerName ->
             val headerValue = getter.get(carrier, headerName)
             if (!headerValue.isNullOrEmpty()) {
                 platformHeadersContext[headerName] = headerValue

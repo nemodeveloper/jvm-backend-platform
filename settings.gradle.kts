@@ -55,8 +55,8 @@ dependencyResolutionManagement {
             val kotlinVersion = "1.9.24"
             val kotlinxVersion = "1.8.1"
             val springVersion = "6.1.10"
-            val springBootVersion = "3.3.1"
-            val springDependencyManagementVersion = "1.1.5"
+            val springBootVersion = "3.3.2"
+            val springDependencyManagementVersion = "1.1.6"
 
             // base plugin
             plugin("spring-boot", "org.springframework.boot").version(springBootVersion)
@@ -80,7 +80,7 @@ dependencyResolutionManagement {
             val jakartaServletApiVersion = "6.1.0"
             library("spring-web", "org.springframework:spring-web:$springVersion")
             library("spring-webmvc", "org.springframework:spring-webmvc:$springVersion")
-            // TODO перейти на undertow когда будет поддержка virtual threads с 3.3.2
+            // TODO перейти на undertow когда будет поддержка virtual threads с 3.4.0
             library("spring-boot-web", "org.springframework.boot:spring-boot-starter-web:$springBootVersion")
             library("jakarta-servlet-api", "jakarta.servlet:jakarta.servlet-api:$jakartaServletApiVersion")
 
@@ -89,28 +89,30 @@ dependencyResolutionManagement {
 
             // base database
             val postgresJdbcVersion = "42.7.3"
-            val dataSourceMicrometerVersion = "1.0.4"
+            val dataSourceMicrometerVersion = "1.0.5"
             library("spring-boot-jdbc", "org.springframework.boot:spring-boot-starter-data-jdbc:$springBootVersion")
             library("datasource-micrometer", "net.ttddyy.observation:datasource-micrometer-spring-boot:$dataSourceMicrometerVersion")
             library("postgres-jdbc", "org.postgresql:postgresql:$postgresJdbcVersion")
 
-            val flywayVersion = "10.15.2"
+            val flywayVersion = "10.16.0"
             library("flyway", "org.flywaydb:flyway-core:$flywayVersion")
             library("flyway-postgresql", "org.flywaydb:flyway-database-postgresql:$flywayVersion")
 
             // base kafka
-            val springKafkaVersion = "3.2.1"
+            val springKafkaVersion = "3.2.2"
             library("spring-kafka", "org.springframework.kafka:spring-kafka:$springKafkaVersion")
 
-            // base actuator + prometheus
-            val micrometerVersion = "1.13.1"
+            // base actuator
             library("spring-boot-actuator", "org.springframework.boot:spring-boot-starter-actuator:$springBootVersion")
+
+            // base prometheus
+            val micrometerVersion = "1.13.2"
             library("micrometer", "io.micrometer:micrometer-core:$micrometerVersion")
             library("prometheus", "io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
 
             // base tracing
-            val micrometerTracingVersion = "1.3.1"
-            val otlpExporterVersion = "1.39.0"
+            val micrometerTracingVersion = "1.3.2"
+            val otlpExporterVersion = "1.40.0"
             library("micrometer-tracing", "io.micrometer:micrometer-tracing:$micrometerTracingVersion")
             library("micrometer-tracing-bridge-otel", "io.micrometer:micrometer-tracing-bridge-otel:$micrometerTracingVersion")
             library("opentelemetry-exporter-otlp", "io.opentelemetry:opentelemetry-exporter-otlp:$otlpExporterVersion")
@@ -128,7 +130,7 @@ dependencyResolutionManagement {
             library("springwolf-ui", "io.github.springwolf:springwolf-ui:$springwolfVersion")
 
             // base jackson
-            val jacksonVersion = "2.17.1"
+            val jacksonVersion = "2.17.2"
             library("jackson-module-kotlin", "com.fasterxml.jackson.module:jackson-module-kotlin:$jacksonVersion")
             library("jackson-datatype-jsr310", "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
             library("jackson-databind", "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion")
@@ -169,7 +171,7 @@ dependencyResolutionManagement {
             // base test libs
             val junitJupiterEngineVersion = "5.10.3"
             val kotestVersion = "5.9.1"
-            val mockkVersion = "1.13.11"
+            val mockkVersion = "1.13.12"
             library("spring-boot-test", "org.springframework.boot:spring-boot-starter-test:$springBootVersion")
             library("junit-jupiter-engine", "org.junit.jupiter:junit-jupiter-engine:$junitJupiterEngineVersion")
             library("kotest", "io.kotest:kotest-runner-junit5-jvm:$kotestVersion")

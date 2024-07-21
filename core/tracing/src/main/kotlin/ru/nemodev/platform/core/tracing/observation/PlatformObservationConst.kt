@@ -7,10 +7,16 @@ object PlatformObservationConst {
 
     val platformHeadersContextKey = ContextKey.named<Map<String, String>>("platform-headers")!!
 
-    val platformPropagationHeaders = listOf(
+    val platformObservationHeaders = listOf(
         ApiHeaderNames.REQUEST_ID,
         ApiHeaderNames.USER_ID,
-        ApiHeaderNames.LOG_MODE,
+        ApiHeaderNames.DEBUG_MODE,
+        ApiHeaderNames.SERVICE_INITIATOR
+    )
+
+    val platformPropagationHeaders = listOf(
+        ApiHeaderNames.REQUEST_ID,
+        ApiHeaderNames.DEBUG_MODE,
         ApiHeaderNames.SERVICE_INITIATOR
     )
 }
