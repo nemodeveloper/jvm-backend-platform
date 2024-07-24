@@ -2,6 +2,7 @@ package ru.nemodev.platform.core.tracing.config
 
 import io.micrometer.observation.ObservationFilter
 import io.micrometer.observation.ObservationPredicate
+import io.micrometer.tracing.Tracer
 import io.micrometer.tracing.otel.bridge.EventListener
 import io.opentelemetry.context.propagation.TextMapPropagator
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
@@ -39,7 +40,8 @@ class TracingConfig {
             "api-docs",
             "webjars",
             "springwolf",
-            "favicon"
+            "favicon",
+            "instances"
         )
     }
 
@@ -105,7 +107,8 @@ class TracingConfig {
     fun platformObservationFilter(
         @Value("\${spring.application.name}")
         applicationName: String,
-    ): ObservationFilter = PlatformHeaderObservationFilter(applicationName)
+        tracer: Tracer
+    ): ObservationFilter = PlatformHeaderObservationFilter(applicationName, tracer)
 
     @Bean
     fun platformHeaderEventListener(): EventListener = PlatformHeaderEventListener()

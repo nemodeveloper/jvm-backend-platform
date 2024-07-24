@@ -28,5 +28,6 @@ object PathFilterPatterns {
         "/actuator**",
         "**/springwolf**",
         "/springwolf**",
+        "/instances**"
     )
 }

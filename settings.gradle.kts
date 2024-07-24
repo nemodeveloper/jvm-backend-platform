@@ -74,6 +74,8 @@ dependencyResolutionManagement {
             library("spring-boot-starter", "org.springframework.boot:spring-boot-starter:$springBootVersion")
             library("spring-boot-autoconfigure", "org.springframework.boot:spring-boot-autoconfigure:$springBootVersion")
             library("spring-boot-configuration-processor", "org.springframework.boot:spring-boot-configuration-processor:$springBootVersion")
+
+            // base spring boot validation
             library("spring-boot-validation", "org.springframework.boot:spring-boot-starter-validation:$springBootVersion")
 
             // base spring http server
@@ -86,6 +88,10 @@ dependencyResolutionManagement {
 
             // base spring security
             library("spring-boot-starter-oauth2-resource-server", "org.springframework.boot:spring-boot-starter-oauth2-resource-server:$springBootVersion")
+
+            // base spring boot admin
+            val springBootAdminVersion = "3.3.3"
+            library("spring-boot-admin-client", "de.codecentric:spring-boot-admin-starter-client:$springBootAdminVersion")
 
             // base database
             val postgresJdbcVersion = "42.7.3"

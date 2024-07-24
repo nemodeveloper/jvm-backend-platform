@@ -27,6 +27,9 @@ dependencies {
     // micrometer
     api(libs.bundles.base.metrics)
 
+    // spring boot admin client
+    api(libs.spring.boot.admin.client)
+
     // kotlin
     api(libs.bundles.kotlin)
 }

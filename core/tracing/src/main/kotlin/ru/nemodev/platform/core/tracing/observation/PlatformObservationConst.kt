@@ -5,7 +5,9 @@ import ru.nemodev.platform.core.api.headers.ApiHeaderNames
 
 object PlatformObservationConst {
 
-    val platformHeadersContextKey = ContextKey.named<Map<String, String>>("platform-headers")!!
+    const val UNKNOWN_TAG_VALUE = "unknown"
+
+    val platformHeadersContextKey = ContextKey.named<Map<String, String?>>("platform-headers")!!
 
     val platformObservationHeaders = listOf(
         ApiHeaderNames.REQUEST_ID,

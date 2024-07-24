@@ -12,38 +12,3 @@ spring:
   threads:
     virtual:
       enabled: true
-
-management:
-  info:
-    os:
-      enabled: true
-    process:
-      enabled: true
-    build:
-      enabled: true
-    java:
-      enabled: true
-  endpoints:
-    web:
-      exposure:
-        include: health, info, prometheus, flyway
-  endpoint:
-    health:
-      show-details: always
-      showComponents: always
-      probes:
-        enabled: true
-      group:
-        readiness:
-          include: readinessState
-        liveness:
-          include: livenessState
-
-logging:
-  pattern:
-    console: "%clr(%d{${LOG_DATE_FORMAT_PATTERN:yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:%5p}) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%15.15t]){faint} %clr(%-40.40logger{40}){cyan} %clr(MDC={%X}){magenta} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
-  level:
-    root: info
-    org.zalando.logbook: trace
-    ru.nemodev.platform.core.logging: trace
-    ru.nemodev.platform.core.integration.kafka.logging: trace

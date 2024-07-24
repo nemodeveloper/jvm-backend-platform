@@ -7,19 +7,19 @@ import org.springframework.core.io.ClassPathResource
 import org.springframework.core.io.support.EncodedResource
 import ru.nemodev.platform.core.spring.config.YamlPropertySourceFactory
 
-class CoreConfigEnvPostProcessor : EnvironmentPostProcessor {
+class CoreStarterConfigEnvPostProcessor : EnvironmentPostProcessor {
 
     companion object {
-        const val FILE_NAME = "core-starter.yml"
+        const val CONFIG_FILE_NAME = "core-starter.yml"
     }
 
     override fun postProcessEnvironment(environment: ConfigurableEnvironment?, application: SpringApplication?) {
         environment?.propertySources?.addLast(
             YamlPropertySourceFactory()
                 .createPropertySource(
-                    name = FILE_NAME,
+                    name = CONFIG_FILE_NAME,
                     encodedResource = EncodedResource(
-                        ClassPathResource(FILE_NAME),
+                        ClassPathResource(CONFIG_FILE_NAME),
                     )
                 )
         )

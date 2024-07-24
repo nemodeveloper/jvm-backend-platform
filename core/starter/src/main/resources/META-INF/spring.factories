@@ -1,2 +1,2 @@
 org.springframework.boot.env.EnvironmentPostProcessor=\
-  ru.nemodev.platform.core.starter.config.CoreConfigEnvPostProcessor
+  ru.nemodev.platform.core.starter.config.CoreStarterConfigEnvPostProcessor
