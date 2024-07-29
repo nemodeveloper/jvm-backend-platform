@@ -15,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.web.cors.CorsConfiguration
@@ -94,6 +95,15 @@ class OAuth2ResourceServerConfig(
         return JwtGrantedAuthoritiesConverter().apply {
             setAuthorityPrefix("ROLE_")
             setAuthoritiesClaimDelimiter(" ")
+        }
+    }
+
+    @Bean
+    fun jwtAuthenticationConverter(
+        jwtGrantedAuthoritiesConverter: Converter<Jwt, Collection<GrantedAuthority>>
+    ): JwtAuthenticationConverter {
+        return JwtAuthenticationConverter().apply {
+            setJwtGrantedAuthoritiesConverter(jwtGrantedAuthoritiesConverter)
         }
     }
 }

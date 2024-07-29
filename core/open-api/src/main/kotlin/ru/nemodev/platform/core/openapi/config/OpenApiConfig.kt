@@ -26,6 +26,13 @@ import ru.nemodev.platform.core.spring.config.YamlPropertySourceFactory
     type = SecuritySchemeType.HTTP,
     `in` = SecuritySchemeIn.HEADER
 )
+@SecurityScheme(
+    name = "basicAuth",
+    scheme = "basic",
+    bearerFormat = "BASIC",
+    type = SecuritySchemeType.HTTP,
+    `in` = SecuritySchemeIn.HEADER
+)
 class OpenApiConfig {
 
     @Bean
