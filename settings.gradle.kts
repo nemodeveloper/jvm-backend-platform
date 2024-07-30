@@ -184,9 +184,9 @@ dependencyResolutionManagement {
             library("mockk", "io.mockk:mockk:$mockkVersion")
             library("kotlin-test-junit", "org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
 
-            /////////////////////////////////
-            // REGION PLATFORM LIBS //
-            /////////////////////////////////
+            ////////////////////////////////
+            ///// REGION PLATFORM LIBS /////
+            ////////////////////////////////
 
             // base core libs
             val platformGroup = "ru.nemodev.platform"
@@ -222,9 +222,9 @@ dependencyResolutionManagement {
             library("core-security-oauth2-resource", "$platformGroup:core-security-oauth2-resource:$platformVersion")
 
 
-            /////////////////////////////////
-            // REGION LIB-BUNDLES ///////////
-            /////////////////////////////////
+            //////////////////////////////
+            ///// REGION LIB-BUNDLES /////
+            //////////////////////////////
 
             // base/core bundles
             bundle("core-starter", listOf(
