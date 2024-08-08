@@ -11,6 +11,7 @@ class CorsGlobalConfig : WebMvcConfigurer {
         corsRegistry.addMapping("/**")
             .allowedOrigins("*")
             .allowedMethods("*")
+            .allowedHeaders("*")
             .maxAge(3600)
     }
 }

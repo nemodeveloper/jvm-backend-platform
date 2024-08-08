@@ -6,6 +6,7 @@ spring:
       transaction-isolation: 4 # TRANSACTION_REPEATABLE_READ
       data-source-properties:
         ApplicationName: ${spring.application.name:backend-app}
+        binaryTransfer: true
   data:
     jdbc:
       dialect: postgresql
